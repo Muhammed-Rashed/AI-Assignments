@@ -40,3 +40,16 @@ collect_books(Student, Acc, L) :-
     collect_books(Student, [Book|Acc], L).
 % now Acc has the full list of borrowed books so we make the last argument which is the result equal to it
 collect_books(_, L, L).
+
+
+%% Task 4 %%
+ratings_of_book(Book, L) :-
+    collect_ratings(Book, [], L).
+
+%% recursively collect ratings %%
+collect_ratings(Book, Acc, L) :-
+    rating(Student, Book, Score),
+    not(is_member((Student, Score), Acc)),
+    collect_ratings(Book, [(Student, Score)|Acc], L).
+
+collect_ratings(_, L, L).
