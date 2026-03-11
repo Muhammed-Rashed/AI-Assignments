@@ -41,6 +41,53 @@ collect_books(Student, Acc, L) :-
 % now Acc has the full list of borrowed books so we make the last argument which is the result equal to it
 collect_books(_, L, L).
 
+%% Task 2 %%
+borrowers_count(Book, N) :-
+    % build a list of borrowers then count them
+    build_borrowers_list(Book, [], List),
+    get_length(List, N).
+
+build_borrowers_list(Book, Acc, List) :-
+    % get a Student that borrowed Book
+    borrowed(Student, Book),
+
+    % only add Student that are not in Accumulator list yet
+    \+ is_member(Student, Acc),
+
+    % add the Student
+    build_borrowers_list(Book, [Student|Acc], List).
+% stop after adding all Students that borrowed Book
+build_borrowers_list(_, List, List).
+
+%% Task 3 %%
+most_borrowed_book(B) :-
+    build_books_list([], Books),
+    Books = [H|T],
+    get_most_borrowed(H, T, B).
+
+get_most_borrowed(MostBorrowed, [], MostBorrowed).
+get_most_borrowed(MostBorrowed, [H|T], B) :-
+    more_borrowed(MostBorrowed, H, NewMostBorrowed),
+    get_most_borrowed(NewMostBorrowed, T, B).
+
+more_borrowed(Book1, Book2, Most_borrowed_book) :-
+    % get borrowers count for both Books
+    borrowers_count(Book1, N),
+    borrowers_count(Book2, M),
+
+    % make Most_borrowed_Book equal the book with the highest borrowers count
+    (N > M -> Most_borrowed_book = Book1 ; Most_borrowed_book = Book2).
+
+build_books_list(Acc, L) :-
+    % bring current borrowed book
+    book(Book, _),
+
+    % make sure book is not in the list already
+    not(is_member(Book, Acc)),
+
+    % add book to Accumulator list then backtrack
+    build_books_list([Book|Acc], L).
+build_books_list(L, L).
 
 %% Task 4 %%
 ratings_of_book(Book, L) :-
