@@ -45,8 +45,7 @@ collect_books(_, L, L).
 %% Task 4 %%
 ratings_of_book(Book, L) :-
     collect_ratings(Book, [], L).
-
-%% recursively collect ratings %%
+    
 collect_ratings(Book, Acc, L) :-
     rating(Student, Book, Score),
     not(is_member((Student, Score), Acc)),
