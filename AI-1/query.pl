@@ -99,3 +99,19 @@ collect_ratings(Book, Acc, L) :-
     collect_ratings(Book, [(Student, Score)|Acc], L).
 
 collect_ratings(_, L, L).
+
+
+%% Task 5 %%
+top_reviewer(Student):-
+    % take a score
+    rating(Student, _, Score),
+
+    % make sure no other score in the system is higher than the current score
+    \+(higher_score_than(Score)).
+
+higher_score_than(Score):-
+    % take another score from the library data
+    rating(_, _, OtherScore),
+
+    % check if the score is higher than the current score
+    Score < OtherScore.
