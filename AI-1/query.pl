@@ -1,20 +1,42 @@
-% Mohamed Rashid : 20230335 - Ahmed Ayman : 20230008 
+% Mohamed Rashid : 20230335 - Ahmed Ayman : 20230008 - Ali Omar : 20230241 - Abdelrahman Akram : 20230204
 
-% Task 1: get all books borrowed by a specific student
+% helper stuff %
 
-books_borrowed_by_student(Student, Books) :-
-findall(Book, borrowed(Student, Book), Books).
+is_member(Element, [Element|T]).
+is_member(Element, [_|T]) :-
+    is_member(Element, T).
 
-% Task 2: count how many borrowed a book
+get_length([], 0).
+get_length([H|T], Length) :-
+    get_length(T, Temp),
+    Length is Temp + 1.
 
-borrowers_count(Book, Count):-
-findall(Student, borrowed(Student, Book), Students),
-length(Students, Count).
+new_append([], List2, List2).
+new_append([H|T], List2, [H|Result]) :-
+    new_append(T, List2, Result).
 
-% Task 3: Find the most borrowed book
+new_count(_, [], 0).
+new_count(Element, [Element|T], Count) :-
+    new_count(Element, T, Temp),
+    Count is Temp + 1.
+new_count(Element, [H|T], Count) :-
+    Element \= H,
+    new_count(Element, T, Count).
 
-most_borrowed(Book) :-
-findall(Count-Title, (book(Title,_), borrowers_count(Title, Count)), Pairs),
-pairs_keys_values(Pairs, Counts, _),
-max_list(Counts, MaxCount),
-member(MaxCount-Book, Pairs).
+%% Task 1 %%
+books_borrowed_by_student(Student, L):-
+    %% wrapper to collect books
+    collect_books(Student, [], L), !.
+
+
+collect_books(Student, Acc, L) :-
+    % bring current borrowed book
+    borrowed(Student, Book),
+
+    % make sure book is not in the list already
+    not(is_member(Book, Acc)),
+
+    % add book to Accumulator list then backtrack
+    collect_books(Student, [Book|Acc], L).
+% now Acc has the full list of borrowed books so we make the last argument which is the result equal to it
+collect_books(_, L, L).
