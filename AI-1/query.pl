@@ -121,6 +121,7 @@ higher_score_than(Score):-
 
     % check if the score is higher than the current score
     Score < OtherScore.
+
 %% Task 6 %%
 most_common_topic_for_student(Student, Topic):-
     % get all books borrowed by the student
@@ -129,4 +130,20 @@ most_common_topic_for_student(Student, Topic):-
     % collect all topics from these books and merge them into one list
     collect_all_topics_of_books(Books, [], AllTopics),
 
-    % find the most frequent topic
+    % start comparison
+    AllTopics = [H|T],
+    get_most_freq_topic(H, T, Topic).
+
+get_most_freq_topic(MostTopic, [], MostTopic).
+get_most_freq_topic(MostTopic, [H|T], Topic):-
+    more_topic(MostTopic, H, NewMostTopic),
+    get_most_freq_topic(NewMostTopic, T, Topic).
+
+more_topic(Topic1, Topic2, Most_freq_topic):-
+    topic_count(Topic1, N),
+    topic_count(Topic2, M),
+    (N > M -> Most_freq_topic = Topic1 ; Most_freq_topic = Topic2).
+
+topic_count(Topic, N) :-
+    topics(_, List),
+    new_count(Topic, List, N).
