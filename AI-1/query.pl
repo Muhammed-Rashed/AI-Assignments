@@ -66,23 +66,24 @@ build_borrowers_list(Book, Acc, List) :-
 build_borrowers_list(_, List, List).
 
 %% Task 3 %%
-most_borrowed_book(B) :-
-    build_books_list([], Books),
-    Books = [H|T],
-    get_most_borrowed(H, T, B), !.
+most_borrowed_book(B):-
+    % take a score
+    book(B, _),
 
-get_most_borrowed(MostBorrowed, [], MostBorrowed).
-get_most_borrowed(MostBorrowed, [H|T], B) :-
-    more_borrowed(MostBorrowed, H, NewMostBorrowed),
-    get_most_borrowed(NewMostBorrowed, T, B).
+    % make sure no other book in the system is more borrwed than current book
+    \+(more_borrowed(B)), !.
 
-more_borrowed(Book1, Book2, Most_borrowed_book) :-
-    % get borrowers count for both Books
+more_borrowed(Book1):-
+    % take another score from the library data
+    book(Book2, _),
+    Book2 \= Book1,
+
+    % get the brrowers count for each book
     borrowers_count(Book1, N),
     borrowers_count(Book2, M),
 
-    % make Most_borrowed_Book equal the book with the highest borrowers count
-    (N > M -> Most_borrowed_book = Book1 ; Most_borrowed_book = Book2).
+    % check if the borrower count forBook2 is higher than borrower count fo Book1
+    N < M.
 
 build_books_list(Acc, L) :-
     % bring current borrowed book
