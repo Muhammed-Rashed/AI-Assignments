@@ -23,6 +23,12 @@ new_count(Element, [H|T], Count) :-
     Element \= H,
     new_count(Element, T, Count).
 
+collect_all_topics_of_books([], Acc, Acc).
+collect_all_topics_of_books([Book|Rest], Acc, AllTopics) :-
+    topics(Book, BookTopics),
+    new_append(BookTopics, Acc, NewAcc),
+    collect_all_topics_of_books(Rest, NewAcc, AllTopics).
+
 %% Task 1 %%
 books_borrowed_by_student(Student, L):-
     %% wrapper to collect books
@@ -115,3 +121,12 @@ higher_score_than(Score):-
 
     % check if the score is higher than the current score
     Score < OtherScore.
+%% Task 6 %%
+most_common_topic_for_student(Student, Topic):-
+    % get all books borrowed by the student
+    books_borrowed_by_student(Student, Books),
+
+    % collect all topics from these books and merge them into one list
+    collect_all_topics_of_books(Books, [], AllTopics),
+
+    % find the most frequent topic
