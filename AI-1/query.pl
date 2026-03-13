@@ -1,4 +1,7 @@
-% Mohamed Rashid : 20230335 - Ahmed Ayman : 20230008 - Ali Omar : 20230241 - Abdelrahman Akram : 20230204
+% Mohamed Rashid : 20230335
+% Ahmed Ayman : 20230008 
+% Ali Omar : 20230241 
+% Abdelrahman Akram : 20230204
 
 %%%% helper predicates %%%%
 
@@ -82,10 +85,10 @@ build_borrowers_list(_, List, List).
 % most_borrowed_book(Book)
 % finds the book that has the highest number of borrowers
 most_borrowed_book(B):-
-    % take a book from the system
+    % take a book from the data
     book(B, _),
 
-    % make sure no other book in the system is more borrowed than current book
+    % make sure no other book in the data is more borrowed than current book
     \+(more_borrowed(B)), !.
 
 more_borrowed(Book1):-
@@ -122,12 +125,12 @@ collect_ratings(_, L, L).
 %%%% Task 5 %%%%
 
 % top_reviewer(Student)
-% returns the student who gave the highest rating in the system
+% returns the student who gave the highest rating to any book
 top_reviewer(Student):-
     % take a score from the rating facts
     rating(Student, _, Score),
 
-    % make sure no other score in the system is higher than the current score
+    % make sure no other score is higher than the current score
     \+(higher_score_than(Score)), !.
 
 higher_score_than(Score):-
