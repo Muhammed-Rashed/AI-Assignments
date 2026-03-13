@@ -1,6 +1,6 @@
 % Mohamed Rashid : 20230335 - Ahmed Ayman : 20230008 - Ali Omar : 20230241 - Abdelrahman Akram : 20230204
 
-% helper stuff %
+% helper predicates %
 
 is_member(Element, [Element|T]).
 is_member(Element, [_|T]) :-
@@ -123,6 +123,7 @@ higher_score_than(Score):-
     Score < OtherScore.
 
 %% Task 6 %%
+
 most_common_topic_for_student(Student, Topic):-
     % get all books borrowed by the student
     books_borrowed_by_student(Student, Books),
@@ -130,20 +131,11 @@ most_common_topic_for_student(Student, Topic):-
     % collect all topics from these books and merge them into one list
     collect_all_topics_of_books(Books, [], AllTopics),
 
-    % start comparison
-    AllTopics = [H|T],
-    get_most_freq_topic(H, T, Topic), !.
+    is_member(Topic, AllTopics),
+    new_count(Topic, AllTopics, Count),
+    \+ higher_topic_count(Count, AllTopics), !.
 
-get_most_freq_topic(MostTopic, [], MostTopic).
-get_most_freq_topic(MostTopic, [H|T], Topic):-
-    more_topic(MostTopic, H, NewMostTopic),
-    get_most_freq_topic(NewMostTopic, T, Topic).
-
-more_topic(Topic1, Topic2, Most_freq_topic):-
-    topic_count(Topic1, N),
-    topic_count(Topic2, M),
-    (N > M -> Most_freq_topic = Topic1 ; Most_freq_topic = Topic2).
-
-topic_count(Topic, N) :-
-    topics(_, List),
-    new_count(Topic, List, N).
+higher_topic_count(Count, Topics):-
+    is_member(OtherTopic, Topics),
+    new_count(OtherTopic, Topics, OtherCount),
+    OtherCount > Count.

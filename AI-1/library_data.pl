@@ -42,7 +42,7 @@ borrowed(karim, recursion_in_depth).
 % topics(Book, TopicsList)
 
 topics(prolog_fundamentals, [facts, rules, queries, unification]).
-topics(recursion_in_depth, [base_case, recursive_case, logic, termination]).
+topics(recursion_in_depth, [base_case, recursive_case, tracing, termination]).
 topics(list_programming, [head_tail, member, append, length, prefix, suffix]).
 topics(ai_intro, [search, logic, knowledge_representation]).
 
