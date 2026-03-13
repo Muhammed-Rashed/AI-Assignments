@@ -40,7 +40,7 @@ collect_books(Student, Acc, L) :-
     borrowed(Student, Book),
 
     % make sure book is not in the list already
-    not(is_member(Book, Acc)),
+    \+ is_member(Book, Acc),
 
     % add book to Accumulator list then backtrack
     collect_books(Student, [Book|Acc], L).
@@ -50,7 +50,7 @@ collect_books(_, L, L).
 %% Task 2 %%
 borrowers_count(Book, N) :-
     % build a list of borrowers then count them
-    build_borrowers_list(Book, [], List),
+    build_borrowers_list(Book, [], List), !,
     get_length(List, N).
 
 build_borrowers_list(Book, Acc, List) :-
@@ -69,7 +69,7 @@ build_borrowers_list(_, List, List).
 most_borrowed_book(B) :-
     build_books_list([], Books),
     Books = [H|T],
-    get_most_borrowed(H, T, B).
+    get_most_borrowed(H, T, B), !.
 
 get_most_borrowed(MostBorrowed, [], MostBorrowed).
 get_most_borrowed(MostBorrowed, [H|T], B) :-
@@ -89,7 +89,7 @@ build_books_list(Acc, L) :-
     book(Book, _),
 
     % make sure book is not in the list already
-    not(is_member(Book, Acc)),
+    \+ is_member(Book, Acc),
 
     % add book to Accumulator list then backtrack
     build_books_list([Book|Acc], L).
@@ -97,11 +97,11 @@ build_books_list(L, L).
 
 %% Task 4 %%
 ratings_of_book(Book, L) :-
-    collect_ratings(Book, [], L).
+    collect_ratings(Book, [], L), !.
     
 collect_ratings(Book, Acc, L) :-
     rating(Student, Book, Score),
-    not(is_member((Student, Score), Acc)),
+    \+ is_member((Student, Score), Acc),
     collect_ratings(Book, [(Student, Score)|Acc], L).
 
 collect_ratings(_, L, L).
@@ -113,7 +113,7 @@ top_reviewer(Student):-
     rating(Student, _, Score),
 
     % make sure no other score in the system is higher than the current score
-    \+(higher_score_than(Score)).
+    \+(higher_score_than(Score)), !.
 
 higher_score_than(Score):-
     % take another score from the library data
@@ -132,7 +132,7 @@ most_common_topic_for_student(Student, Topic):-
 
     % start comparison
     AllTopics = [H|T],
-    get_most_freq_topic(H, T, Topic).
+    get_most_freq_topic(H, T, Topic), !.
 
 get_most_freq_topic(MostTopic, [], MostTopic).
 get_most_freq_topic(MostTopic, [H|T], Topic):-
