@@ -1,3 +1,4 @@
+% state representation: state(Position_in_grid, Grid, Path, Battery)
 
 % calculate adjacent coordinates
 adjacent((R, C), (NR, C)) :- NR is R + 1. % Down
@@ -64,7 +65,7 @@ visited(state(Pos, _, _, _), Closed) :-
 
 % BFS entry point
 bfs(StartState, Solution) :-
-    % Open queue starts with only the start state
+    % Open list starts with only the start state
     % Closed list is empty at the beginning
     bfs_queue([StartState], [], Solution).
 
@@ -80,10 +81,10 @@ bfs_queue([Current | _], _, Current) :-
 % main BFS step
 bfs_queue([Current | RestQueue], Closed, Solution) :-
 
-    % open Queue:
-    % [Current | RestQueue]
+    % open list: [Current | RestQueue]
     % Current is the node we are exploring now
     % RestQueue is the rest of the nodes that will be explored after
+    % closed list : Closed
 
     Current = state(Pos, _, _, _),
     % If we already visited this position before, skip it and move to the next node in the queue
@@ -103,7 +104,7 @@ bfs_queue([Current | RestQueue], Closed, Solution) :-
     ).
 
 % main solve predicates
-% this takes grid as input
+% this takes grid as input and was used to test at runtime
 solve(Grid) :-
     find_robot(Grid, StartPos),
 
@@ -114,10 +115,11 @@ solve(Grid) :-
     StartState = state(StartPos, Grid, [StartPos], 100),
 
     (bfs(StartState, Solution) -> print_solution(Solution) ; true ), !.
-% this predicate is for solving grids that are facts in this code
+% this predicate is for solving grids that are facts in this code which is the one required
 solve :-
     grid(Grid),
     solve(Grid).
+% some grid examples
 grid([
     [r, e, e, d, s],
     [e, f, d, e, e],

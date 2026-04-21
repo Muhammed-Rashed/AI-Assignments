@@ -1,4 +1,4 @@
-% State: state(robot position, grid, path, number of rescued survivors)
+% State representation: state(robot position, grid, path, number of rescued survivors)
 % heuristic function: h(n) = distance to the nearest survivor - collected survivors - number of survivors within 3 steps
 
 % calculate adjacent coordinates
@@ -20,7 +20,7 @@ get_cell(Grid, (R, C), Content) :-
     nth1(R, Grid, Row),
     nth1(C, Row, Content).
 
-% generate a valid next state with battery constraint
+% generate a valid next state
 move(state((R, C), Grid, Path, SCount),
      state((NR, NC), Grid, [(NR, NC)|Path], NewSCount)) :-
 
@@ -154,6 +154,7 @@ search(Open, Closed, CurrentBest, FinalBest) :-
     search(NewOpen, NewClosed, NewBest, FinalBest).
 
 % Main
+% this predicate is for solving grids that are given as input to the predicate which was used to test at runtime
 solve(Grid) :-
     find_robot(Grid, StartPos),
     InitialState = state(StartPos, Grid, [StartPos], 0),
@@ -162,16 +163,19 @@ solve(Grid) :-
     search([InitialNode], [], none, Best),
     print_solution(Best), !.
 
-% Print the solution path, steps, and battery left
+
+% print "No solution found" if there is no solution
 print_solution(none) :-
     write('No solution found'), nl.
 
+% Print the solution path, steps and number of survivors collected
 print_solution([state(_, _, Path, SCount), Steps, _, _]) :-
     reverse(Path, P),
     write('Path: '), write(P), nl,
     write('Steps: '), write(Steps), nl,
     write('Survivors: '), write(SCount), nl.
 
+% grid examples
 grid([[s, e, d, e, s, f],
       [e, e, f, s, s, e],
       [d, e, e, e, d, e],
@@ -179,7 +183,7 @@ grid([[s, e, d, e, s, f],
       [d, e, r, e, d, e],
       [d, e, e, e, d, e],
       [s, s, e, f, s, f]]).
-
+% this is the required predicate to solve grids that are facts in the file
 solve :-
     grid(Grid),
     solve(Grid).
