@@ -79,6 +79,7 @@ bfs_queue([Current | _], _, Current) :-
     goal(Current), !.
 
 % main BFS step
+% bfs_queue(OpenList, ClosedList, Solution)
 bfs_queue([Current | RestQueue], Closed, Solution) :-
 
     % open list: [Current | RestQueue]
