@@ -114,7 +114,7 @@ solve(Grid) :-
     StartState = state(StartPos, Grid, [StartPos], 100),
 
     (bfs(StartState, Solution) -> print_solution(Solution) ; true ), !.
-% this solves the problem using the grid fact in the code
+% this predicate is for solving grids that are facts in this code
 solve :-
     grid(Grid),
     solve(Grid).

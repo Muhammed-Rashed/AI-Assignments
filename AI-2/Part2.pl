@@ -160,3 +160,22 @@ print_solution([state(_, _, Path, SCount), _, _, _, _]) :-
 % goal state: robot is on a survivor cell
 goal(state((R, C), Grid, _, _)) :-
     get_cell(Grid, (R, C), s).
+
+% this predicate is for solving grids that are facts in this code
+solve :-
+    grid(Grid),
+    solve(Grid).
+grid([
+    [r, e, e, d, s],
+    [e, f, d, e, e],
+    [e, e, d, f, e],
+    [d, e, e, f, e],
+    [e, d, e, e, e]
+]).
+grid([
+    [e, e, e, e, s],
+    [e, d, d, d, e],
+    [e, d, r, d, e],
+    [e, d, d, d, e],
+    [e, e, e, e, e]
+]).
