@@ -188,20 +188,27 @@ print_solution([state(_, _, Path, SCount), Steps, _, _]) :-
     write('Number of steps: '), write(Steps), nl.
 
 % grid examples
-grid([[s, e, d, e, s, f],
-      [e, e, f, s, s, e],
-      [d, e, e, e, d, e],
-      [d, e, e, e, d, e],
-      [d, e, r, e, d, e],
-      [d, e, e, e, d, e],
-      [s, s, e, f, s, f]]).
-grid([[s, e, d, e, s, f],
-      [e, e, f, s, s, e],
-      [d, e, e, e, d, e],
-      [d, e, s, e, d, e],
-      [d, e, r, e, d, e],
-      [d, e, e, e, d, e],
-      [s, s, e, f, s, f]]).
+% Grid 1 (collect 2 survivors)
+grid([
+    [r, e, s],
+    [e, f, e],
+    [s, e, e]
+]).
+
+% Grid 2 (forces greedy decisions)
+grid([
+    [r, e, e, s],
+    [e, f, e, e],
+    [s, e, f, s]
+]).
+
+% Grid 3 (more complex layout)
+grid([
+    [r, e, d, e, s],
+    [e, e, f, e, e],
+    [d, e, e, e, s],
+    [e, s, e, f, e]
+]).
 % this is the required predicate to solve grids that are facts in the file
 solve :-
     grid(Grid),

@@ -143,17 +143,30 @@ solve :-
     grid(Grid),
     solve(Grid).
 % some grid examples
+% Grid 1 (simple path)
 grid([
-    [r, e, e, d, s],
-    [e, f, d, e, e],
-    [e, e, d, f, e],
-    [d, e, e, f, e],
-    [e, d, e, e, e]
+    [r, e, e],
+    [d, f, e],
+    [e, e, s]
 ]).
+
+% Grid 2 (multiple survivors → nearest one)
 grid([
-    [e, e, e, e, s],
-    [e, d, d, d, e],
-    [e, d, r, d, e],
-    [e, d, e, d, e],
-    [e, e, e, e, e]
+    [r, e, e, s],
+    [d, d, e, e],
+    [s, e, e, e]
+]).
+
+% Grid 3 (must go around obstacles)
+grid([
+    [r, d, e, e],
+    [e, d, e, s],
+    [e, e, e, d]
+]).
+
+% Grid 4 (no possible path)
+grid([
+    [r, d, s],
+    [d, d, d],
+    [e, e, e]
 ]).
