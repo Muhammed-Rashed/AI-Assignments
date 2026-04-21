@@ -74,6 +74,16 @@ expand(State, Children) :-
 visited(state(Pos, _, _, _), Closed) :-
     member(Pos, Closed).
 
+% exclude visited states from a list of states
+exclude_visited([], _, []).
+exclude_visited([state(Pos, G, P, B)|T], Closed, Result) :-
+    member(Pos, Closed),
+    exclude_visited(T, Closed, Result).
+exclude_visited([H|T], Closed, [H|Result]) :-
+    H = state(Pos, _, _, _),
+    \+ member(Pos, Closed),
+    exclude_visited(T, Closed, Result).
+
 % BFS entry point
 bfs(StartState, Solution) :-
     % Open list starts with only the start state
@@ -107,8 +117,9 @@ bfs_queue([Current | RestQueue], Closed, Solution) :-
         % generate all possible next states from Current
         expand(Current, Children),
 
-        % add them to the END of the queue
-        append(RestQueue, Children, NewQueue),
+        % add them to the END of the queue after excluding any that we have already visited (in Closed)
+        exclude_visited(Children, Closed, FilteredChildren),
+        append(RestQueue, FilteredChildren, NewQueue),
 
         % add current position to Closed list
         % Closed list = all positions we have already explored
