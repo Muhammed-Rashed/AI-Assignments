@@ -17,42 +17,22 @@ get_cell(Grid, (R, C), Content) :-
     nth1(R, Grid, Row),
     nth1(C, Row, Content).
 
-calculateH(state((R,C),_,_,_,_), H) :-
-    heuristic((R,C), H). % waiting for you Ahmed
-
-move(state((R, C), Grid, Path, Battery, S),
-     state((NR, NC), Grid, [(NR, NC)|Path], NewBattery, NewS)) :-
-
+% generate a valid next state with battery constraint
+move(state((R, C), Grid, Path, Battery, SCount),state((NR, NC), Grid, [(NR, NC)|Path], NewBattery, NewSCount)) :-
     adjacent((R, C), (NR, NC)),
     in_bounds((NR, NC), Grid),
     \+ member((NR, NC), Path),
-
     get_cell(Grid, (NR, NC), Content),
-    Content \= d,
-    Content \= f,
-
+    Content \= d, % can't go into debris
+    Content \= f, % can't go into fire
     NewBattery is Battery - 10,
     NewBattery > 0,
-
-    (Content = s -> NewS is S + 1 ; NewS is S).
+    (Content = s -> NewSCount is SCount + 1 ; NewSCount is SCount). % increment survivor count if we find one
 
 % find the starting position of the robot
 find_robot(Grid, (R, C)) :-
     nth1(R, Grid, Row),
     nth1(C, Row, r).
-
-% Print the result
-print_solution([state(_,_,Path,_,S),_,_,_,_]) :-
-    reverse(Path, FinalPath),
-    length(FinalPath, Len),
-    Steps is Len - 1,
-    write('Path: '), write(FinalPath), nl,
-    write('Steps: '), write(Steps), nl,
-    write('Survivors rescued: '), write(S), nl.
-
-% goal state: robot is on a survivor cell
-goal(state((R, C), Grid, _, _)) :-
-    get_cell(Grid, (R, C), s).
 
 % generate all valid next states (children)
 expand(State, Children) :-
@@ -65,66 +45,79 @@ expand(State, Children) :-
 visited(state(Pos, _, _, _), Closed) :-
     member(Pos, Closed).
 
-% Implementation of step 3 to get the next states
-getAllValidChildren(Node, Open, Closed, Goal, Children):-
-    findall(Next, getNextState(Node,Open,Closed,Goal,Next),
-    Children).
+% --- HEURISTIC ---
+calculateH(state(_, Grid, Path, _, _), SurvivorScore) :-
+    % have fun bro
 
-search(Open, Closed, BestSoFar, FinalBest):-
-    Open \= [],
 
-    getBestState(Open, CurrentNode, TmpOpen),
-    CurrentNode = [State,Parent,G,H,F],
-
-    State = state(_,_,_,_,SCount),
-
-    % Update best solution
-    (BestSoFar = none -> NewBest = CurrentNode;
-        BestSoFar = [BestState,_,_,_,_],
-        BestState = state(_,_,_,_,BestS),
-        (SCount > BestS -> NewBest = CurrentNode ; NewBest = BestSoFar)
-    ),
-
-    getAllValidChildren(CurrentNode, TmpOpen, Closed, _, Children),
-    addChildren(Children, TmpOpen, NewOpen),
-    append(Closed, [CurrentNode], NewClosed),
-
-    search(NewOpen, NewClosed, NewBest, FinalBest).
-
-% stop condition
-search([], _, Best, Best).
-
-getNextState([State,_,G,_,_],Open,Closed,_,[Next,State,NewG,NewH,NewF]):-
+% --- ALGO ---
+% generate one valid successor node, skipping already seen states
+getNextState([State, _, Steps, _, _], Open, Closed, [Next, State, NewSteps, NewSurvivorScore, NewSearchScore]) :-
     move(State, Next),
-    calculateH(Next, NewH),
-    NewG is G + 1,
-    NewF is NewH,
-    not(member([Next,_,_,_,_], Open)),
-    not(member([Next,_,_,_,_], Closed)).
+    calculateH(Next, NewSurvivorScore),
+    NewSteps is Steps + 1,
+    NewSearchScore is NewSurvivorScore,                                       % greedy: SearchScore = SurvivorScore only (ignore Steps)
+    \+ member([Next, _, _, _, _], Open),
+    \+ member([Next, _, _, _, _], Closed).
 
-% Implementation of addChildren and getBestState
-addChildren(Children, Open, NewOpen):-
+getAllValidChildren(Node, Open, Closed, Children) :-
+    findall(Next, getNextState(Node, Open, Closed, _, Next), Children).
+
+addChildren(Children, Open, NewOpen) :-
     append(Open, Children, NewOpen).
 
-getBestState(Open, BestChild, Rest):-
-    findMin(Open, BestChild),
-    delete(Open, BestChild, Rest).
+% pick the node with the lowest SearchScore value
+getBestNode(Open, Best, Rest) :-
+    findMin(Open, Best),
+    delete(Open, Best, Rest).
+ 
+findMin([X], X) :- !.
+findMin([Head | Tail], Min) :-
+    findMin(Tail, TailMin),
+    Head    = [_, _, _, _, HeadScore],
+    TailMin = [_, _, _, _, TailScore],
+    (TailScore < HeadScore -> Min = TailMin ; Min = Head).
 
-    % Implementation of findMin in getBestState determines the search
-    alg.
 
-% Greedy best-first search
-findMin([X], X):- !.
-findMin([Head|T], Min):-
-    findMin(T, TmpMin),
-    Head = [_,_,_,HeadH,HeadF],
-    TmpMin = [_,_,_,TmpH,TmpF],
-    (TmpH < HeadH -> Min = TmpMin ; Min = Head).
+% Keeps track of the best solution found so far (most survivors rescued)
+search([], _, Best, Best).
+search(Open, Closed, BestSoFar, FinalBest) :-
+    Open \= [],
+    getBestNode(Open, CurrentNode, TmpOpen),
+    CurrentNode = [CurrentState, _, _, _, _],
+    goal(State), !.
+    CurrentState = state(_, _, _, _, SurvivorCount),
+ 
+    % Update best if current node rescued more survivors
+    (BestSoFar = none ->
+        NewBest = CurrentNode
+    ;
+        BestSoFar = [BestState, _, _, _, _],
+        BestState = state(_, _, _, _, BestCount),
+        (SurvivorCount > BestCount -> NewBest = CurrentNode ; NewBest = BestSoFar)
+    ),
+ 
+    getAllValidChildren(CurrentNode, TmpOpen, Closed, Children),
+    addChildren(Children, TmpOpen, NewOpen),
+    append(Closed, [CurrentNode], NewClosed),
+    search(NewOpen, NewClosed, NewBest, FinalBest).
 
-start(Grid) :-
+solve(Grid) :-
     find_robot(Grid, StartPos),
     InitialState = state(StartPos, Grid, [StartPos], 100, 0),
-    calculateH(InitialState, H),
-    Open = [[InitialState, nil, 0, H, H]],
-    search(Open, [], none, Best),
-    print_solution(Best).
+    calculateH(InitialState, SurvivorScore),
+    InitialNode = [InitialState, nil, 0, SurvivorScore, SurvivorScore],
+    search([InitialNode], [], none, Best),
+    (Best = none ->write("No path found.");print_solution(Best)).
+
+% print result
+print_solution([state(_, _, Path, Battery, SCount), _, Steps, _, _]) :-
+    reverse(Path, FinalPath),
+    write('Path: '), write(FinalPath), nl,
+    write('Steps: '), write(Steps), nl,
+    write('Survivors rescued: '), write(SCount), nl,
+    write('Battery left: '), write(Battery), write('%'), nl.
+
+% goal state: robot is on a survivor cell
+goal(state((R, C), Grid, _, _, _)) :-
+    get_cell(Grid, (R, C), s).
