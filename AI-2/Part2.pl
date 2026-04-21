@@ -36,38 +36,43 @@ find_robot(Grid, (R, C)) :-
     nth1(R, Grid, Row),
     nth1(C, Row, r).
 
-%
-% HEURISTIC => h(n) = MinDistance - SCount - NearCount
-manhattan((R1,C1), (R2,C2), D) :-
-    D is abs(R1 - R2) + abs(C1 - C2).
+% Heuristic function
+% h(n) = distance to the nearest survivor - collected survivors - number of survivors within 4 steps
+heuristic((R,C),Grid,SCount, H) :-
+    make_distances((R,C),Grid,Distances),
+    (Distances = [] -> MinDistance = 0; min_element(Distances, MinDistance)), % Distance to nearest survivor
 
+    count_near(Distances, 4, NearCount), % number of survivors within 4 steps
+
+    H is MinDistance - SCount - NearCount.
+
+% Calculate the manhatten distance between 2 cells
+manhatten((R1,C1), (R2,C2), Distance) :-
+    Distance is abs(R1 - R2) + abs(C1 - C2).
+
+% Make a list of distances between the current cell and all survivors
 make_distances((R,C), Grid, Distances) :-
-    findall(D,
-        (get_cell(Grid, (SR,SC), s),
-         manhattan((R,C), (SR,SC), D)),
-    Distances).
+    findall(D,(get_cell(Grid, (SR,SC), s),manhatten((R,C), (SR,SC), D)),Distances).
 
-% Count survivors within Threshold steps
+% Count the number of survivors within Limit steps
 count_near([], _, 0).
-count_near([H|T], Threshold, Count) :-
-    count_near(T, Threshold, SubCount),
-    ( H < Threshold -> Count is SubCount + 1;Count is SubCount).
 
-% Min element of a list
+count_near([H|T], Limit, Count) :-
+    count_near(T, Limit, Sub),
+    ( H < Limit -> Count is Sub + 1 ; Count is Sub).
+
 min_element([H|T], Min) :-
     min_element(T, H, Min).
-min_element([], Min, Min).
-min_element([H|T], Cur, Min) :-
-    ( H < Cur -> min_element(T, H, Min) ; min_element(T, Cur, Min) ).
 
-heuristic((R,C), Grid, SCount, H) :-
-    make_distances((R,C), Grid, Distances),
-    ( Distances = [] ->
-        H is -SCount;
-        min_element(Distances, MinDistance),
-        count_near(Distances, 5, NearCount),
-        H is MinDistance - SCount - NearCount
-    ).
+min_element([H|T], CurrentMin, Min) :-
+    H < CurrentMin,
+    min_element(T, H, Min).
+
+min_element([H|T], CurrentMin, Min) :-
+    H >= CurrentMin,
+    min_element(T, CurrentMin, Min).
+
+min_element([], Min, Min).
 
 calculateH(state((R,C), Grid, _, SCount), H) :-
     % If the cell has a survivor, simulate collecting it
@@ -148,10 +153,13 @@ print_solution([state(_, _, Path, SCount), Steps, _, _]) :-
 % GRIDS
 % =========================
 
-grid([[r, e, d, e, e],
-[e, e, f, e, s],
-[d, e, e, e, d],
-[e, s, e, f, s]]).
+grid([[s, e, d, e, s, f],
+      [e, e, f, s, s, e],
+      [d, e, e, e, d, e],
+      [d, e, e, e, d, e],
+      [d, e, r, e, d, e],
+      [d, e, e, e, d, e],
+      [s, s, e, f, s, f]]).
 
 solve :-
     grid(Grid),
