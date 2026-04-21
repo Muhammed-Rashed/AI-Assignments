@@ -165,6 +165,17 @@ solve(Grid) :-
     print_solution(Best), !.
 
 
+% print_path
+print_path([]).
+
+print_path([(R, C)]) :-
+    write('('), write(R), write(','), write(C), write(')').
+
+print_path([(R, C) | Rest]) :-
+    write('('), write(R), write(','), write(C), write(')'),
+    write(' -> '),
+    print_path(Rest).
+
 % print "No solution found" if there is no solution
 print_solution(none) :-
     write('No solution found'), nl.
@@ -172,9 +183,9 @@ print_solution(none) :-
 % Print the solution path, steps and number of survivors collected
 print_solution([state(_, _, Path, SCount), Steps, _, _]) :-
     reverse(Path, P),
-    write('Path: '), write(P), nl,
-    write('Steps: '), write(Steps), nl,
-    write('Survivors: '), write(SCount), nl.
+    write('Path found: '), print_path(P), nl,
+    write('Survivors rescued: '), write(SCount), nl,
+    write('Number of steps: '), write(Steps), nl.
 
 % grid examples
 grid([[s, e, d, e, s, f],
