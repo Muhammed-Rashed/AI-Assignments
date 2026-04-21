@@ -157,7 +157,7 @@ solve(Grid) :-
     calculateH(InitialState, H),
     InitialNode = [InitialState, 0, 0, H],
     search([InitialNode], [], none, Best),
-    print_solution(Best).
+    print_solution(Best), !.
 
 % Print the solution path, steps, and battery left
 print_solution(none) :-
