@@ -31,7 +31,7 @@ move(state((R, C), Grid, Path, Battery),
     Content \= f,                        % can't go into fire
 
     NewBattery is Battery - 10,          % each move costs 10% battery
-    NewBattery > 0.                      % must still have battery left
+    NewBattery >= 0.                      % must still have battery left
 
 % find the starting position of the robot
 find_robot(Grid, (R, C)) :-
@@ -102,7 +102,8 @@ bfs_queue([Current | RestQueue], Closed, Solution) :-
         bfs_queue(NewQueue, [Pos | Closed], Solution)
     ).
 
-% main solve predicate
+% main solve predicates
+% this takes grid as input
 solve(Grid) :-
     find_robot(Grid, StartPos),
 
@@ -113,3 +114,21 @@ solve(Grid) :-
     StartState = state(StartPos, Grid, [StartPos], 100),
 
     (bfs(StartState, Solution) -> print_solution(Solution) ; true ), !.
+% this solves the problem using the grid fact in the code
+solve :-
+    grid(Grid),
+    solve(Grid).
+grid([
+    [r, e, e, d, s],
+    [e, f, d, e, e],
+    [e, e, d, f, e],
+    [d, e, e, f, e],
+    [e, d, e, e, e]
+]).
+grid([
+    [e, e, e, e, s],
+    [e, d, d, d, e],
+    [e, d, r, d, e],
+    [e, d, e, d, e],
+    [e, e, e, e, e]
+]).
