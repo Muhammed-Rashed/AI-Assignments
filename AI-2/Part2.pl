@@ -1,3 +1,6 @@
+% State: state(robot position, grid, path, number of rescued survivors)
+% heuristic function: h(n) = distance to the nearest survivor - collected survivors - number of survivors within 3 steps
+
 % calculate adjacent coordinates
 adjacent((R, C), (NR, C)) :- NR is R + 1.
 adjacent((R, C), (NR, C)) :- NR is R - 1.
@@ -42,7 +45,7 @@ heuristic((R,C),Grid,SCount, H) :-
     make_distances((R,C),Grid,Distances),
     (Distances = [] -> MinDistance = 0; min_element(Distances, MinDistance)), % Distance to nearest survivor
 
-    count_near(Distances, 3, NearCount), % number of survivors within 4 steps
+    count_near(Distances, 3, NearCount), % number of survivors within 3 steps
 
     H is MinDistance - SCount - NearCount.
 
