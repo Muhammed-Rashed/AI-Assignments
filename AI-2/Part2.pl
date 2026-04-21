@@ -195,6 +195,13 @@ grid([[s, e, d, e, s, f],
       [d, e, r, e, d, e],
       [d, e, e, e, d, e],
       [s, s, e, f, s, f]]).
+grid([[s, e, d, e, s, f],
+      [e, e, f, s, s, e],
+      [d, e, e, e, d, e],
+      [d, e, s, e, d, e],
+      [d, e, r, e, d, e],
+      [d, e, e, e, d, e],
+      [s, s, e, f, s, f]]).
 % this is the required predicate to solve grids that are facts in the file
 solve :-
     grid(Grid),
