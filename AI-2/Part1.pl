@@ -39,14 +39,25 @@ find_robot(Grid, (R, C)) :-
     nth1(R, Grid, Row),
     nth1(C, Row, r).
 
+% print_path
+print_path([]).
+
+print_path([(R, C)]) :-
+    write('('), write(R), write(','), write(C), write(')').
+
+print_path([(R, C) | Rest]) :-
+    write('('), write(R), write(','), write(C), write(')'),
+    write(' -> '),
+    print_path(Rest).
 % print result
 print_solution(state(_, _, Path, Battery)) :-
     reverse(Path, FinalPath),
     length(FinalPath, Len),
     Steps is Len - 1,
-    write('Path: '), write(FinalPath), nl,
-    write('Steps: '), write(Steps), nl,
-    write('Battery left: '), write(Battery), write('%'), nl.
+    write('Path found: '),
+    print_path(FinalPath), nl,
+    write('Number of steps: '), write(Steps), nl,
+    write('Remaining Battery: '), write(Battery), write('%'), nl.
 
 % goal state: robot is on a survivor cell
 goal(state((R, C), Grid, _, _)) :-
