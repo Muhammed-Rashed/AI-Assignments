@@ -188,21 +188,21 @@ print_solution([state(_, _, Path, SCount), Steps, _, _]) :-
     write('Number of steps: '), write(Steps), nl.
 
 % grid examples
-% Grid 1 (collect 2 survivors)
+% Grid 1
 grid([
     [r, e, s],
     [e, f, e],
     [s, e, e]
 ]).
 
-% Grid 2 (forces greedy decisions)
+% Grid 2
 grid([
     [r, e, e, s],
     [e, f, e, e],
     [s, e, f, s]
 ]).
 
-% Grid 3 (more complex layout)
+% Grid 3
 grid([
     [r, e, d, e, s],
     [e, e, f, e, e],

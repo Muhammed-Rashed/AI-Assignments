@@ -150,21 +150,21 @@ grid([
     [e, e, s]
 ]).
 
-% Grid 2 (multiple survivors → nearest one)
+% Grid 2
 grid([
     [r, e, e, s],
     [d, d, e, e],
     [s, e, e, e]
 ]).
 
-% Grid 3 (must go around obstacles)
+% Grid 3
 grid([
     [r, d, e, e],
     [e, d, e, s],
     [e, e, e, d]
 ]).
 
-% Grid 4 (no possible path)
+% Grid 4
 grid([
     [r, d, s],
     [d, d, d],
