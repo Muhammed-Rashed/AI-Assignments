@@ -123,8 +123,9 @@ getBest([H|T], Best) :-
     ( HS < BS -> Best = H ; Best = BT ).
 
 % Remove a node from a list
-remove_node(Node, List, Rest) :-
-    select(Node, List, Rest).
+remove_node(X, [X|T], T).
+remove_node(X, [H|T], [H|R]) :-
+    remove_node(X, T, R).
 
 % Greedy Best-First Search entry point
 search(Open, _, Best, Best) :-
