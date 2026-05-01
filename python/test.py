@@ -69,8 +69,83 @@ class Piece:
 # MAIN GAME CLASS
 
 class Game:
-    def __init__(self):
+    def draw_menu(self):
+        screen.fill((240, 240, 240))
 
+        title = font.render("Choose Game Mode", True, (0,0,0))
+        screen.blit(title, (WIDTH//2 - title.get_width()//2, HEIGHT//2 - 100))
+
+        # PVP button
+        pygame.draw.rect(screen, (200,200,200), self.pvp_button, border_radius=8)
+        pygame.draw.rect(screen, (80,80,80), self.pvp_button, 2, border_radius=8)
+
+        pvp_text = font.render("Player vs Player", True, (0,0,0))
+        screen.blit(pvp_text, pvp_text.get_rect(center=self.pvp_button.center))
+
+        # AI button
+        pygame.draw.rect(screen, (200,200,200), self.ai_button, border_radius=8)
+        pygame.draw.rect(screen, (80,80,80), self.ai_button, 2, border_radius=8)
+
+        ai_text = font.render("Player vs AI", True, (0,0,0))
+        screen.blit(ai_text, ai_text.get_rect(center=self.ai_button.center))
+    def draw_ai_menu(self):
+        screen.fill((240, 240, 240))
+
+        title = font.render("Choose AI Difficulty", True, (0,0,0))
+        screen.blit(title, (WIDTH//2 - title.get_width()//2, HEIGHT//2 - 120))
+
+        # Easy
+        pygame.draw.rect(screen, (200,200,200), self.easy_button, border_radius=8)
+        pygame.draw.rect(screen, (80,80,80), self.easy_button, 2, border_radius=8)
+        txt = font.render("Easy", True, (0,0,0))
+        screen.blit(txt, txt.get_rect(center=self.easy_button.center))
+
+        # Medium
+        pygame.draw.rect(screen, (200,200,200), self.medium_button, border_radius=8)
+        pygame.draw.rect(screen, (80,80,80), self.medium_button, 2, border_radius=8)
+        txt = font.render("Medium", True, (0,0,0))
+        screen.blit(txt, txt.get_rect(center=self.medium_button.center))
+
+        # Hard
+        pygame.draw.rect(screen, (200,200,200), self.hard_button, border_radius=8)
+        pygame.draw.rect(screen, (80,80,80), self.hard_button, 2, border_radius=8)
+        txt = font.render("Hard", True, (0,0,0))
+        screen.blit(txt, txt.get_rect(center=self.hard_button.center))
+    def draw_role_menu(self):
+        screen.fill((240, 240, 240))
+
+        title = font.render("Choose Your Role", True, (0,0,0))
+        screen.blit(title, (WIDTH//2 - title.get_width()//2, HEIGHT//2 - 100))
+
+        # Attacker button
+        pygame.draw.rect(screen, (200,200,200), self.attacker_button, border_radius=8)
+        pygame.draw.rect(screen, (80,80,80), self.attacker_button, 2, border_radius=8)
+
+        txt = font.render("Attacker", True, (0,0,0))
+        screen.blit(txt, txt.get_rect(center=self.attacker_button.center))
+
+        # Defender button
+        pygame.draw.rect(screen, (200,200,200), self.defender_button, border_radius=8)
+        pygame.draw.rect(screen, (80,80,80), self.defender_button, 2, border_radius=8)
+
+        txt = font.render("Defender", True, (0,0,0))
+        screen.blit(txt, txt.get_rect(center=self.defender_button.center))
+    def __init__(self):
+        self.attacker_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 - 40, 240, 40)
+        self.defender_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 + 20, 240, 40)
+        # AI DIFFICULTY BUTTONS
+        self.easy_button   = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 - 60, 240, 40)
+        self.medium_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2, 240, 40)
+        self.hard_button   = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 + 60, 240, 40)
+        # GAME MODE STATE
+        self.state = "menu"
+        self.mode = None
+        self.difficulty = None
+        self.player_role = None   # NEW
+        # MENU BUTTONS
+        self.pvp_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 - 40, 240, 40)
+        self.ai_button  = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 + 20, 240, 40)
+        
         # 2D grid representing the board
         # each cell contains either:
         # - None (empty)
@@ -146,10 +221,7 @@ class Game:
         self.load_images()
         self.init_board()
 
-
-
     # IMAGE LOADING
-
 
     def load_piece(self, path):
         """
@@ -163,7 +235,6 @@ class Game:
         new_size = (int(img.get_width() * scale), int(img.get_height() * scale))
 
         return pygame.transform.smoothscale(img, new_size)
-
 
     def load_king(self, path):
         img = pygame.image.load(path)
@@ -180,7 +251,6 @@ class Game:
 
         return pygame.transform.smoothscale(img, new_size)
 
-
     def load_images(self):
         """
         Load all piece images into a dictionary.
@@ -191,10 +261,7 @@ class Game:
             "king": self.load_king("king.png")
         }
 
-
-
     # BOARD INITIALIZATION
-
 
     def init_board(self):
         """
@@ -247,20 +314,15 @@ class Game:
         for r, c in attackers:
             self.board[r][c] = Piece("attacker", self.pieces_img["attacker"])
 
-
-
     # UTILITY FUNCTIONS
-
 
     def in_bounds(self, r, c):
         """Check if (r, c) is inside board."""
         return 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE
 
-
     def is_throne(self, r, c):
         """Check if square is the center (throne)."""
         return (r, c) == (self.center, self.center)
-
 
     def is_hostile_square(self, r, c):
         """
@@ -278,8 +340,6 @@ class Game:
             return True
 
         return False
-
-
 
     # NEW RULE: NO SANDWICH ENTRY CHECK
     def is_sandwich_position(self, r, c, piece):
@@ -325,9 +385,7 @@ class Game:
 
         return False
 
-
     # MOVEMENT LOGIC
-
 
     def compute_valid_moves(self, r, c):
         """
@@ -361,10 +419,7 @@ class Game:
 
         return moves
 
-
-
     # CAPTURE LOGIC
-
 
     def check_captures(self, r, c):
         mover = self.board[r][c]
@@ -397,10 +452,7 @@ class Game:
             if (behind and behind.type == mover.type) or self.is_hostile_square(br, bc):
                 self.board[nr][nc] = None
 
-
-
     # KING RULES
-
 
     def check_king_capture(self):
         king_pos = None
@@ -448,32 +500,65 @@ class Game:
             self.game_over = True
             self.winner = "Attacker"
 
-
-
     # ANIMATION
-
 
     def update_animation(self):
         if self.animating:
-            self.anim_progress += 0.08
+            self.anim_progress += 0.05
 
             if self.anim_progress >= 1:
                 self.animating = False
                 self.anim_progress = 0
 
-
-
     # INPUT HANDLING
 
-
     def handle_click(self, pos):
+        # MENU CLICK HANDLING
+        # MAIN MENU
+        if self.state == "menu":
+            if self.pvp_button.collidepoint(pos):
+                self.mode = "pvp"
+                self.state = "game"
+                self.init_board()
+
+            elif self.ai_button.collidepoint(pos):
+                self.mode = "ai"
+                self.state = "ai_menu"
+
+            return
+        # AI DIFFICULTY MENU
+        if self.state == "ai_menu":
+            if self.easy_button.collidepoint(pos):
+                self.difficulty = "easy"
+            elif self.medium_button.collidepoint(pos):
+                self.difficulty = "medium"
+            elif self.hard_button.collidepoint(pos):
+                self.difficulty = "hard"
+            else:
+                return
+
+            self.state = "role_menu"   # go to role selection instead
+            return
+        if self.state == "role_menu":
+            if self.attacker_button.collidepoint(pos):
+                self.player_role = "Attacker"
+            elif self.defender_button.collidepoint(pos):
+                self.player_role = "Defender"
+            else:
+                return
+
+            self.state = "game"
+            self.init_board()
+            return
         x, y = pos
 
         r = (y - UI_HEIGHT) // SQUARE_SIZE
         c = x // SQUARE_SIZE
 
         if self.reset_button.collidepoint(pos):
-            self.init_board()
+            self.state = "menu"
+            self.mode = None
+            self.difficulty = None
             return
 
         if self.game_over:
@@ -519,10 +604,7 @@ class Game:
             self.selected = None
             self.valid_moves = []
 
-
-
     # DRAWING FUNCTIONS
-
 
     def draw_ui(self):
         pygame.draw.rect(screen, UI_BG, (0, 0, WIDTH, UI_HEIGHT))
@@ -537,7 +619,6 @@ class Game:
 
         screen.blit(font.render("RESET", True, (0,0,0)),
                     font.render("RESET", True, (0,0,0)).get_rect(center=self.reset_button.center))
-
 
     def draw_board(self):
         for r in range(BOARD_SIZE):
@@ -572,7 +653,6 @@ class Game:
                         (rect.right-pad, rect.top+pad),
                         (rect.left+pad, rect.bottom-pad), 3)
 
-
     def draw_pieces(self):
         for r in range(BOARD_SIZE):
             for c in range(BOARD_SIZE):
@@ -603,7 +683,6 @@ class Game:
             rect = self.anim_piece.image.get_rect(center=(x, y))
             screen.blit(self.anim_piece.image, rect)
 
-
     def run(self):
         while True:
             for event in pygame.event.get():
@@ -616,11 +695,20 @@ class Game:
 
             self.update_animation()
 
-            screen.fill((255,255,255))
-            self.draw_ui()
-            self.draw_board()
-            self.draw_pieces()
+            if self.state == "menu":
+                self.draw_menu()
 
+            elif self.state == "ai_menu":
+                self.draw_ai_menu()
+
+            elif self.state == "role_menu":
+                self.draw_role_menu()
+
+            else:
+                screen.fill((255,255,255))
+                self.draw_ui()
+                self.draw_board()
+                self.draw_pieces()
             pygame.display.flip()
             clock.tick(60)
 
