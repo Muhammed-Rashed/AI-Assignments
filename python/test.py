@@ -3,7 +3,7 @@ import sys
 
 # initialize pygame modules (graphics, sound, input, etc.)
 pygame.init()
-
+pygame.mixer.init()
 # BOARD CONFIGURATION
 
 # board is 11x11 (classic Hnefatafl size)
@@ -131,6 +131,11 @@ class Game:
         txt = font.render("Defender", True, (0,0,0))
         screen.blit(txt, txt.get_rect(center=self.defender_button.center))
     def __init__(self):
+        self.move_sound = pygame.mixer.Sound("move.wav")
+        self.move_sound.set_volume(0.6)
+        self.capture_sound = pygame.mixer.Sound("capture.wav")
+        self.win_sound = pygame.mixer.Sound("win.wav")
+        self.victory_sound = pygame.mixer.Sound("victory.wav")
         self.attacker_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 - 40, 240, 40)
         self.defender_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 + 20, 240, 40)
         # AI DIFFICULTY BUTTONS
@@ -450,6 +455,7 @@ class Game:
             behind = self.board[br][bc]
 
             if (behind and behind.type == mover.type) or self.is_hostile_square(br, bc):
+                self.capture_sound.play()
                 self.board[nr][nc] = None
 
     # KING RULES
@@ -465,6 +471,7 @@ class Game:
                     break
 
         if not king_pos:
+            self.win_sound.play()
             self.game_over = True
             self.winner = "Attacker"
             return
@@ -472,6 +479,8 @@ class Game:
         r, c = king_pos
 
         if (r, c) in [(0,0), (0,10), (10,0), (10,10)]:
+            self.victory_sound.set_volume(0.4)
+            self.victory_sound.play()
             self.game_over = True
             self.winner = "Defender"
             return
@@ -497,6 +506,7 @@ class Game:
                 blocked += 1
 
         if blocked == 4:
+            self.win_sound.play()
             self.game_over = True
             self.winner = "Attacker"
 
@@ -591,6 +601,7 @@ class Game:
                 self.anim_progress = 0
 
                 self.board[r][c] = self.board[sr][sc]
+                self.move_sound.play()
                 self.board[sr][sc] = None
 
                 self.last_move = (r, c)
