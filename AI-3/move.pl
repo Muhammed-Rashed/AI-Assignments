@@ -1,5 +1,5 @@
 % --- Imports ---
-:- consult('board.pl').
+:- consult('Board.pl').
 
 % --- Helpers ---
 % stolen from part2
@@ -65,7 +65,7 @@ move(Board, piece(Type, R1, C1), R2, C2, NewBoard) :-
     path_clear(R1, C1, R2, C2, Board),
 
     % only king can enter special blocks
-    (special_block(R2, C2) -> Type = king ; true),
+    (special_cell(R2, C2) -> Type = king ; true),
 
     % simulate move
     select(piece(Type, R1, C1), Board, TempBoard),
@@ -91,7 +91,7 @@ capturable(Board, Type, R, C, piece(EnemyType, R2, C2)) :-
     member(piece(EnemyType, R2, C2), Board),
 
     opposite(R, C, R2, C2, R3, C3),
-    ( member(piece(Type, R3, C3), Board); special_block(R3, C3)).
+    ( member(piece(Type, R3, C3), Board); special_cell(R3, C3)).
 
 % Adjacent cells up down left right
 adjacent(R, C, R, C2) :- C2 is C+1.
@@ -126,7 +126,7 @@ surrounded(Board, R, C) :-
 % Count blocking sides
 count_blocked(_, [], 0).
 count_blocked(Board, [(R,C)|T], Count) :-
-    ( member(piece(attacker, R, C), Board); special_block(R, C)),
+    ( member(piece(attacker, R, C), Board); special_cell(R, C)),
     count_blocked(Board, T, C1),
     Count is C1 + 1.
 
@@ -138,3 +138,7 @@ count_blocked(Board, [_|T], Count) :-
 required_sides(R, C, 4) :- \+ edge(R,C), \+ corner(R,C).
 required_sides(R, C, 3) :- edge(R,C), \+ corner(R,C).
 required_sides(R, C, 2) :- corner(R,C).
+
+
+% --- Human turns ---
+playTurn(state(Board,Type)) :-
