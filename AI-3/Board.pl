@@ -14,7 +14,7 @@ board([
 ]). 
 
 % State Representaion
-initial_state(state(Board, attacker)) :- 
+initial_state(state(Board, attacker)):- 
     board(Board).
 
 % Define board borders
@@ -32,3 +32,9 @@ corner(11,11).
 % Define special cells
 special_cell(R,C) :- corner(R,C). % Corners are special
 special_cell(6,6). % The thron
+
+
+% Get the piece in a specific position
+get_piece(Board, R, C, Piece):-
+    nth1(R, Board, Row),
+    nth1(C, Row, Piece).
