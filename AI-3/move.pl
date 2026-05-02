@@ -1,3 +1,6 @@
+% --- Imports ---
+:- consult('board.pl').
+
 % --- Helpers ---
 % stolen from part2
 in_bounds((R, C), Grid) :-
@@ -7,14 +10,12 @@ in_bounds((R, C), Grid) :-
     R >= 1, R =< MaxR,
     C >= 1, C =< MaxC.
 
-
 % check if no piece exists
 empty_cell(R, C, Board) :-
     \+ member(piece(_, R, C), Board).
 
 occupied(R, C, Board) :-
     member(piece(_, R, C), Board).
-
 
 % --- Path validation ---
 % Ensure the path is clear so no piece go through the other
@@ -47,15 +48,33 @@ clear_v_loop(C, R, R2, Step, Board) :-
     RNext is R + Step,
     clear_v_loop(C, RNext, R2, Step, Board).
 
+% check if the position is not safe to go to
+unsafe_position(Board, Type, R, C) :-
+    enemy(Enemy, Type),
+    capturable(Board, Enemy, R, C, piece(Type, R, C)).
+
 % --- Move ---
 move(Board, piece(Type, R1, C1), R2, C2, NewBoard) :-
     % destination must be empty
     empty_cell(R2, C2, Board),
+
+    % must move in straight line
     (R1 =:= R2 ; C1 =:= C2),
+
+    % path must be clear
     path_clear(R1, C1, R2, C2, Board),
 
+    % only king can enter special blocks
+    (special_block(R2, C2) -> Type = king ; true),
+
+    % simulate move
     select(piece(Type, R1, C1), Board, TempBoard),
-    NewBoard = [piece(Type, R2, C2) | TempBoard].
+    TempBoard2 = [piece(Type, R2, C2) | TempBoard],
+
+    % cannot move into a capturable position
+    \+ unsafe_position(TempBoard2, Type, R2, C2),
+
+    NewBoard = TempBoard2.
 
 % --- Capture rules ---
 % Stating some facts
@@ -72,9 +91,7 @@ capturable(Board, Type, R, C, piece(EnemyType, R2, C2)) :-
     member(piece(EnemyType, R2, C2), Board),
 
     opposite(R, C, R2, C2, R3, C3),
-    ( member(piece(Type, R3, C3), Board)
-    ; special_block(R3, C3)).
-
+    ( member(piece(Type, R3, C3), Board); special_block(R3, C3)).
 
 % Adjacent cells up down left right
 adjacent(R, C, R, C2) :- C2 is C+1.
@@ -109,8 +126,7 @@ surrounded(Board, R, C) :-
 % Count blocking sides
 count_blocked(_, [], 0).
 count_blocked(Board, [(R,C)|T], Count) :-
-    ( member(piece(attacker, R, C), Board)
-    ; special_block(R, C)),
+    ( member(piece(attacker, R, C), Board); special_block(R, C)),
     count_blocked(Board, T, C1),
     Count is C1 + 1.
 
