@@ -12,16 +12,31 @@ in_bounds((R, C), Grid) :-
 
 % check if no piece exists
 empty_cell(R, C, Board) :-
-    \+ member(piece(_, R, C), Board).
+    get_piece(Board, R, C, e).
 
 occupied(R, C, Board) :-
-    member(piece(_, R, C), Board).
+    \+ empty_cell(R, C, Board).
+
+% piece types
+enemy(a, d).
+enemy(d, a).
+enemy(a, k).
+enemy(k, a).
+
+adjacent(R, C, R, C2) :- C2 is C+1.
+adjacent(R, C, R, C2) :- C2 is C-1.
+adjacent(R, C, R2, C) :- R2 is R+1.
+adjacent(R, C, R2, C) :- R2 is R-1.
+
+opposite(R, C, R2, C2, R3, C3) :-
+    R3 is 2*R2 - R,
+    C3 is 2*C2 - C.
+
 
 % --- Path validation ---
 % Ensure the path is clear so no piece go through the other
 path_clear(R1, C1, R2, C2, Board) :-
-    (R1 =:= R2 -> clear_horizontal(R1, C1, C2, Board)
-    ;C1 =:= C2 -> clear_vertical(C1, R1, R2, Board)).
+    (R1 =:= R2 -> clear_horizontal(R1, C1, C2, Board);C1 =:= C2 -> clear_vertical(C1, R1, R2, Board)).
 
 % Check horizontal path
 clear_horizontal(R, C1, C2, Board) :-
@@ -50,70 +65,86 @@ clear_v_loop(C, R, R2, Step, Board) :-
 
 % check if the position is not safe to go to
 unsafe_position(Board, Type, R, C) :-
-    enemy(Enemy, Type),
-    capturable(Board, Enemy, R, C, piece(Type, R, C)).
-
-% --- Move ---
-move(Board, piece(Type, R1, C1), R2, C2, NewBoard) :-
-    % destination must be empty
-    empty_cell(R2, C2, Board),
-
-    % must move in straight line
-    (R1 =:= R2 ; C1 =:= C2),
-
-    % path must be clear
-    path_clear(R1, C1, R2, C2, Board),
-
-    % only king can enter special blocks
-    (special_cell(R2, C2) -> Type = king ; true),
-
-    % simulate move
-    select(piece(Type, R1, C1), Board, TempBoard),
-    TempBoard2 = [piece(Type, R2, C2) | TempBoard],
-
-    % cannot move into a capturable position
-    \+ unsafe_position(TempBoard2, Type, R2, C2),
-
-    NewBoard = TempBoard2.
-
-% --- Capture rules ---
-% Stating some facts
-enemy(attacker, defender).
-enemy(defender, attacker).
-enemy(attacker, king).
-enemy(defender, attacker).
-
-% cheeck if a piece is capturable
-capturable(Board, Type, R, C, piece(EnemyType, R2, C2)) :-
-    enemy(Type, EnemyType),
-
+    enemy(Type, Enemy),
     adjacent(R, C, R2, C2),
-    member(piece(EnemyType, R2, C2), Board),
+    get_piece(Board, R2, C2, Enemy),
 
     opposite(R, C, R2, C2, R3, C3),
-    ( member(piece(Type, R3, C3), Board); special_cell(R3, C3)).
+    (
+        get_piece(Board, R3, C3, Enemy)
+        ;
+        special_cell(R3, C3)
+    ).
 
-% Adjacent cells up down left right
-adjacent(R, C, R, C2) :- C2 is C+1.
-adjacent(R, C, R, C2) :- C2 is C-1.
-adjacent(R, C, R2, C) :- R2 is R+1.
-adjacent(R, C, R2, C) :- R2 is R-1.
 
-% Compute opposite cell for sandwiching
-opposite(R, C, R2, C2, R3, C3) :-
-    R3 is 2*R2 - R,
-    C3 is 2*C2 - C.
+% --- Update Board ---
+set_cell(Board, R, C, Val, NewBoard) :-
+    nth1(R, Board, Row),
+    replace(Row, C, Val, NewRow),
+    replace(Board, R, NewRow, NewBoard).
 
-% remove the piece when we capture it
+replace([_|T], 1, X, [X|T]).
+replace([H|T], I, X, [H|R]) :-
+    I > 1,
+    I1 is I - 1,
+    replace(T, I1, X, R).
+
+
+% --- Move ---
+move(Board, piece(Type, R1, C1), R2, C2, FinalBoard) :-
+    % correct piece at source
+    get_piece(Board, R1, C1, Type),
+
+    % destination empty
+    empty_cell(R2, C2, Board),
+
+    % straight line
+    (R1 =:= R2 ; C1 =:= C2),
+
+    % path clear
+    path_clear(R1, C1, R2, C2, Board),
+
+    % only king enters special
+    (special_cell(R2, C2) -> Type = k ; true),
+
+    % move
+    set_cell(Board, R1, C1, e, TempBoard),
+    set_cell(TempBoard, R2, C2, Type, MovedBoard),
+
+    % check if move safe
+    \+ unsafe_position(MovedBoard, Type, R2, C2),
+
+    % apply captures
+    capture_all(MovedBoard, R2, C2, Type, FinalBoard).
+
+% --- Capture rules ---
+capture_all(Board, R, C, Type, FinalBoard) :-
+    findall((R2,C2),
+        capturable(Board, R, C, Type, R2, C2),ToRemove),
+    
+    remove_pieces(Board, ToRemove, FinalBoard).
+
+capturable(Board, R, C, Type, R2, C2) :-
+    adjacent(R, C, R2, C2),
+    get_piece(Board, R2, C2, EnemyType),
+    enemy(Type, EnemyType),
+
+    opposite(R, C, R2, C2, R3, C3),
+    (
+        get_piece(Board, R3, C3, Type)
+        ;
+        special_cell(R3, C3)
+    ).
+
 remove_pieces(Board, [], Board).
-remove_pieces(Board, [P|Ps], NewBoard) :-
-    select(P, Board, Temp),
-    remove_pieces(Temp, Ps, NewBoard).
+remove_pieces(Board, [(R,C)|T], FinalBoard) :-
+    set_cell(Board, R, C, e, Temp),
+    remove_pieces(Temp, T, FinalBoard).
 
 
-% --- Capturing the king ---
+% --- King Capture ---
 king_captured(Board) :-
-    member(piece(king, R, C), Board),
+    get_piece(Board, R, C, k),
     surrounded(Board, R, C).
 
 % Check if king is surrounded
@@ -126,7 +157,11 @@ surrounded(Board, R, C) :-
 % Count blocking sides
 count_blocked(_, [], 0).
 count_blocked(Board, [(R,C)|T], Count) :-
-    ( member(piece(attacker, R, C), Board); special_cell(R, C)),
+    (
+        get_piece(Board, R, C, a)
+        ;
+        special_cell(R, C)
+    ),
     count_blocked(Board, T, C1),
     Count is C1 + 1.
 
