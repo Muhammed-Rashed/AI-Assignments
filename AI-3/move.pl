@@ -19,7 +19,6 @@ occupied(R, C, Board) :-
 % piece types
 enemy(a, d).
 enemy(d, a).
-enemy(k, a).
 
 % Switch from attacker to defender and vice versa
 switch(a, d).
