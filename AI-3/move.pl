@@ -2,7 +2,6 @@
 :- consult('Board.pl').
 
 % --- Helpers ---
-% stolen from part2
 in_bounds((R, C), Grid) :-
     length(Grid, MaxR),
     nth1(1, Grid, FirstRow),

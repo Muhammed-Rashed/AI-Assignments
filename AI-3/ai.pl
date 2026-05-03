@@ -1,6 +1,38 @@
 % --- Imports ---
 :- consult('move.pl').
 
+direction(1,0).
+direction(-1,0).
+direction(0,1).
+direction(0,-1).
+
+% Check if moving from R1,C1 to R2,C2 is possible
+take_step(Board, R1, C1, R2, C2, DR, DC) :-
+    NewR is R1 + DR,
+    NewC is C1 + DC,
+
+    empty_cell(NewR, NewC, Board),
+    in_bounds((NewR, NewC), Board),
+
+    (
+        (NewR = R2, NewC = C2)
+        ;
+        take_step(Board, NewR, NewC, R2, C2, DR, DC)
+    ).
+
+% Check the validity of the move
+is_valid_move(Board, R1, C1, R2, C2) :-
+    direction(DR, DC),
+    take_step(Board, R1, C1, R2, C2, DR, DC).
+
+% Get a valid move
+get_valid_move(Board, R1, C1, R2, C2, Type, NewBoard) :-
+    get_piece(Board, R1, C1, Piece),
+    (Type = Piece ; (Type = d, Piece = k)), % the type is a if piece is attacker, and d if piece is defender or king
+
+    is_valid_move(Board, R1, C1, R2, C2),
+    move(Board, R1, C1, R2, C2, Piece, NewBoard).
+
 % Base case (Leaf node or limit reached)
 alphabeta(Board, _, _, _, 0, Type, _, UVal) :-
     !,
@@ -10,7 +42,7 @@ alphabeta(Board, _, _, _, 0, Type, _, UVal) :-
 alphabeta(Board, Alpha, Beta, BestMove, Limit, Type, IsMax, UVal) :-
     Limit > 0,
     % Make a list of valid moves
-    findall(NewBoard, move(Board, _, _, _, _, Type, NewBoard), ValidMoves),
+    findall(NewBoard, get_valid_move(Board, _, _, _, _, Type, NewBoard), ValidMoves),
     % Get the best move in the ValidMoves list
     bestMove(ValidMoves, Alpha, Beta, BestMove, Limit, Type, IsMax, UVal).
 
@@ -171,25 +203,15 @@ count_in_row([_|Rest], Piece, Count) :-
 
 % Get the number of edges and corners that the king can move to
 king_mobility(Board, Edges, Corners) :-
+    % Get the location of the king
     get_piece(Board, R, C, k),
     
+    % Find all edges that the king can reach
     findall((R2, C2),
-        (between(1, 11, R2), between(1, 11, C2),
-         move_validity(Board, R, C, R2, C2), 
-         edge(R2, C2)),
-        Moves1),
+        (is_valid_move(Board, R, C, R2, C2), edge(R2, C2)), Moves1),
     length(Moves1, Edges),
     
+    % Find all corners that the king can reach
     findall((R2, C2),
-        (between(1, 11, R2), between(1, 11, C2), move_validity(Board, R, C, R2, C2), corner(R2, C2)),Moves2),
+        (is_valid_move(Board, R, C, R2, C2), corner(R2, C2)),Moves2),
     length(Moves2, Corners).
-
-% Check the validity of the move
-move_validity(Board, R1, C1, R2, C2) :-
-    rook_movement(R1, C1, R2, C2),
-    empty_cell(R2, C2, Board),
-    path_clear(R1, C1, R2, C2, Board).
-
-rook_movement(R1, C1, R2, C2) :-
-    (R1 =:= R2 ; C1 =:= C2),
-    (R1 \= R2 ; C1 \= C2).
