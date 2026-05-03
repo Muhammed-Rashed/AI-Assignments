@@ -2,13 +2,13 @@
 :- consult('move.pl').
 
 % Base case (Leaf node or limit reached)
-alphabeta(Board, _, _, _, Limit, Type, _, UVal) :-
-    Limit =:= 0,
+alphabeta(Board, _, _, _, 0, Type, _, UVal) :-
+    !,
     utility(Board, UVal, Type).
 
 % Alpha-Beta pruning
 alphabeta(Board, Alpha, Beta, BestMove, Limit, Type, IsMax, UVal) :-
-    Limit \= 0,
+    Limit > 0,
     % Make a list of valid moves
     findall(NewBoard, move(Board, _, _, _, _, Type, NewBoard), ValidMoves),
     % Get the best move in the ValidMoves list
@@ -16,8 +16,9 @@ alphabeta(Board, Alpha, Beta, BestMove, Limit, Type, IsMax, UVal) :-
 
 
 % Prune if Alpha and Beta overlapped
-bestMove([Move|_], Alpha, Beta, BestMove, Limit, Type, IsMax, UVal) :-
+bestMove([_|_], Alpha, Beta, _, _, _, IsMax, UVal) :-
     Alpha >= Beta,
+    !,
     (IsMax -> UVal is Beta ; UVal is Alpha).
 
 % Stop the recursion of only one move is left
@@ -47,7 +48,7 @@ bestMove([Move | RestOfMoves], Alpha, Beta, BestMove, Limit, Type, IsMax, BestUV
     bestMove(RestOfMoves, NewAlpha, NewBeta, Move2, Limit, Type, IsMax, UVal2),
 
     % Compare current move with the best one found so far
-    betterOf(Move, UVal, Move2, UVal2, BestMove, BestUVal).
+    betterOf(Move, UVal, Move2, UVal2, BestMove, BestUVal, IsMax).
 
 % Update Alpha when player is max
 updateValues(UVal, Alpha, Beta, NewAlpha, Beta, true):-
@@ -97,7 +98,7 @@ utility(Board, UVal, a) :-
     (king_captured(Board) -> IsCaptured = 1 ; IsCaptured = 0),
 
     % Get captured defenders
-    count_piece(Board, a, RemainingDefenders),
+    count_piece(Board, d, RemainingDefenders),
     CapturedDefenders is 12 - RemainingDefenders,
 
     % Get the number of edges and corners the king can reach
@@ -152,6 +153,7 @@ utility(Board, UVal, d) :-
 count_piece(Board, Piece, Count) :-
     count_row(Board, Piece, 0, Count).
 
+count_row([], _, Acc, Acc).
 count_row([Row|Rest], Piece, Acc, Count) :-
     count_in_row(Row, Piece, RowCount),
     NewAcc is Acc + RowCount,
@@ -159,29 +161,27 @@ count_row([Row|Rest], Piece, Acc, Count) :-
 
 count_in_row([], _, 0).
 count_in_row([Piece|Rest], Piece, Count) :-
+    !,
     count_in_row(Rest, Piece, NewCount),
     Count is NewCount + 1.
 
-count_in_row([Cell|Rest], Piece, Count) :-
-    Cell \= Piece,
+count_in_row([_|Rest], Piece, Count) :-
     count_in_row(Rest, Piece, Count).
 
 
 % Get the number of edges and corners that the king can move to
 king_mobility(Board, Edges, Corners) :-
-    % Get the location of the king
     get_piece(Board, R, C, k),
-
-    % Find all edges that the king can reach
+    
     findall((R2, C2),
-        (move_validity(Board, R, C, R2, C2), edge(R2,C2)),
+        (between(1, 11, R2), between(1, 11, C2),
+         move_validity(Board, R, C, R2, C2), 
+         edge(R2, C2)),
         Moves1),
     length(Moves1, Edges),
     
-    % Find all corners that the king can reach
     findall((R2, C2),
-        (move_validity(Board, R, C, R2, C2), corner(R2,C2)),
-        Moves2),
+        (between(1, 11, R2), between(1, 11, C2), move_validity(Board, R, C, R2, C2), corner(R2, C2)),Moves2),
     length(Moves2, Corners).
 
 % Check the validity of the move
