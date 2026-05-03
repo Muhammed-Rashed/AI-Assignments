@@ -113,9 +113,15 @@ class Game:
 
 
     def __init__(self):
+        self.win_sound_played = False
+        self.victory_sound_played = False
         self.game_state = "ongoing"
         self.move_sound = pygame.mixer.Sound("move.wav")
-
+        self.move_sound.set_volume(0.6)
+        self.capture_sound = pygame.mixer.Sound("capture.wav")
+        self.win_sound = pygame.mixer.Sound("win.wav")
+        self.victory_sound = pygame.mixer.Sound("victory.wav")
+        self.victory_sound.set_volume(0.4)
         self.attacker_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 - 40, 240, 40)
         self.defender_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 + 20, 240, 40)
 
@@ -213,6 +219,8 @@ class Game:
                 self.current_turn = "Attacker"
                 self.selected = None
                 self.valid_moves = []
+                self.win_sound_played = False
+                self.victory_sound_played = False
                 self.last_move = None
                 self.state = "menu"
             return
@@ -240,7 +248,8 @@ class Game:
             self.selected = None
             self.valid_moves = []
             self.last_move = None
-            
+            self.win_sound_played = False
+            self.victory_sound_played = False
             self.state = "menu"
             return
 
@@ -330,8 +339,14 @@ class Game:
         if self.game_state == "ongoing":
             text = f"Turn: {self.current_turn}"
         elif self.game_state == "attackers_win":
+            if not self.win_sound_played:
+                self.win_sound.play()
+                self.win_sound_played = True
             text = "Attackers Win!"
         elif self.game_state == "defenders_win":
+            if not self.victory_sound_played:
+                self.victory_sound.play()
+                self.victory_sound_played = True
             text = "Defenders Win!"
         else:
             text = "Game Over"
