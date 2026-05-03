@@ -4,10 +4,10 @@
 % --- Helpers ---
 in_bounds((R, C), Grid) :-
     length(Grid, MaxR),
-    nth1(1, Grid, FirstRow),
+    nth0(0, Grid, FirstRow),
     length(FirstRow, MaxC),
-    R >= 1, R =< MaxR,
-    C >= 1, C =< MaxC.
+    R >= 0, R < MaxR,
+    C >= 0, C < MaxC.
 
 % check if no piece exists
 empty_cell(R, C, Board) :-
@@ -82,17 +82,32 @@ unsafe_position(Board, Type, R, C) :-
 
 % --- Update Board ---
 set_cell(Board, R, C, Val, NewBoard) :-
-    nth1(R, Board, Row),
+    nth0(R, Board, Row),
     replace(Row, C, Val, NewRow),
     replace(Board, R, NewRow, NewBoard).
 
-replace([_|T], 1, X, [X|T]).
+replace([_|T], 0, X, [X|T]).
 replace([H|T], I, X, [H|R]) :-
-    I > 1,
+    I > 0,
     I1 is I - 1,
     replace(T, I1, X, R).
 
+is_turn_piece(a, a).
+is_turn_piece(d, d).
+is_turn_piece(k, d).   % king belongs to defender turn
 
+valid_move(Board, R1, C1, R2, C2, Type, Turn) :-
+    get_piece(Board, R1, C1, Type),
+
+    is_turn_piece(Type, Turn),
+
+    empty_cell(R2, C2, Board),
+    (R1 =:= R2 ; C1 =:= C2),
+    path_clear(R1, C1, R2, C2, Board),
+
+    (special_cell(R2, C2) -> Type = k ; true),
+
+    \+ unsafe_position(Board, Type, R2, C2).
 % --- Move ---
 move(Board, R1, C1, R2, C2, Type, FinalBoard) :-
     % correct piece at source

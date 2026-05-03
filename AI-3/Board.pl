@@ -18,23 +18,23 @@ initial_state(state(Board, attacker)):-
     board(Board).
 
 % Define board borders
-edge(1,_).
-edge(_,1).
-edge(11,_).
-edge(_,11).
+edge(0,_).
+edge(_,0).
+edge(10,_).
+edge(_,10).
 
 % Define board corners
-corner(1,1).
-corner(1,11).
-corner(11,1).
-corner(11,11).
+corner(0,0).
+corner(0,10).
+corner(10,0).
+corner(10,10).
 
 % Define special cells
 special_cell(R,C) :- corner(R,C). % Corners are special
-special_cell(6,6). % The thron
+special_cell(5,5). % The throne
 
 
 % Get the piece in a specific position
 get_piece(Board, R, C, Piece):-
-    nth1(R, Board, Row),
-    nth1(C, Row, Piece).
+    nth0(R, Board, Row),
+    nth0(C, Row, Piece).
