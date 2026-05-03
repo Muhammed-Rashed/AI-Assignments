@@ -39,8 +39,17 @@ class Piece:
 
 
 class Game:
+    def count_pieces(self, board):
+        count = 0
+        for row in board:
+            for cell in row:
+                if cell is not None:
+                    count += 1
+        return count
+    
     def turn_to_prolog(self):
         return "a" if self.current_turn == "Attacker" else "d"
+    
     def prolog_board(self):
         def convert(cell):
             if cell is None:
@@ -322,8 +331,19 @@ class Game:
         )
 
         if result and "NewBoard" in result:
-            self.board = self.from_prolog_board(result["NewBoard"])
-            self.move_sound.play()
+            old_count = self.count_pieces(self.board)
+
+            new_board = self.from_prolog_board(result["NewBoard"])
+            new_count = self.count_pieces(new_board)
+
+            self.board = new_board
+
+            # detect capture
+            if new_count < old_count:
+                self.capture_sound.play()
+            else:
+                self.move_sound.play()
+
             self.game_state = result.get("State", "ongoing")
             if self.game_state == "ongoing":
                 self.current_turn = (
