@@ -170,7 +170,7 @@ utility(Board, UVal, d) :-
     (king_captured(Board) -> IsCaptured = 1 ; IsCaptured = 0),
 
     % Get captured defenders
-    count_piece(Board, a, RemainingDefenders),
+    count_piece(Board, d, RemainingDefenders),
     CapturedDefenders is 12 - RemainingDefenders,
 
     % Get the number of edges and corners the king can reach
