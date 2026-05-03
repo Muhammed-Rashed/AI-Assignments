@@ -23,6 +23,10 @@ enemy(d, a).
 enemy(a, k).
 enemy(k, a).
 
+% Switch from attacker to defender and vice versa
+switch(a, d).
+switch(d, a).
+
 adjacent(R, C, R, C2) :- C2 is C+1.
 adjacent(R, C, R, C2) :- C2 is C-1.
 adjacent(R, C, R2, C) :- R2 is R+1.
@@ -69,7 +73,7 @@ unsafe_position(Board, Type, R, C) :-
     adjacent(R, C, R2, C2),
     get_piece(Board, R2, C2, Enemy),
 
-    opposite(R, C, R2, C2, R3, C3),
+    opposite(R2, C2, R, C, R3, C3),
     (
         get_piece(Board, R3, C3, Enemy)
         ;
@@ -91,7 +95,7 @@ replace([H|T], I, X, [H|R]) :-
 
 
 % --- Move ---
-move(Board, piece(Type, R1, C1), R2, C2, FinalBoard) :-
+move(Board, R1, C1, R2, C2, Type, FinalBoard) :-
     % correct piece at source
     get_piece(Board, R1, C1, Type),
 
@@ -107,12 +111,12 @@ move(Board, piece(Type, R1, C1), R2, C2, FinalBoard) :-
     % only king enters special
     (special_cell(R2, C2) -> Type = k ; true),
 
+    % check if move safe
+    \+ unsafe_position(Board, Type, R2, C2),
+
     % move
     set_cell(Board, R1, C1, e, TempBoard),
     set_cell(TempBoard, R2, C2, Type, MovedBoard),
-
-    % check if move safe
-    \+ unsafe_position(MovedBoard, Type, R2, C2),
 
     % apply captures
     capture_all(MovedBoard, R2, C2, Type, FinalBoard).
@@ -142,10 +146,15 @@ remove_pieces(Board, [(R,C)|T], FinalBoard) :-
     remove_pieces(Temp, T, FinalBoard).
 
 
-% --- King Capture ---
+% King Capture
 king_captured(Board) :-
     get_piece(Board, R, C, k),
     surrounded(Board, R, C).
+
+% King Escape
+king_escaped(Board) :-
+    get_piece(Board, R, C, k),
+    corner(R, C).
 
 % Check if king is surrounded
 surrounded(Board, R, C) :-
@@ -176,4 +185,11 @@ required_sides(R, C, 2) :- corner(R,C).
 
 
 % --- Human turns ---
-playTurn(state(Board,Type)) :-
+playTurn(state(Board,Type), R1,C1, R2,C2, NewBoard, AttackersWon, DefendersWon) :-
+    move(Board, R1, C1, R2, C2, Type, NewBoard),
+
+    % Check if defenders won
+    ( king_escaped(NewBoard) -> DefendersWon = true ; DefendersWon = false ),
+    
+    % Check if attackers won
+    ( king_captured(NewBoard) -> AttackersWon = true ; AttackersWon = false ).

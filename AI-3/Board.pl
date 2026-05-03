@@ -1,6 +1,6 @@
 % 11x11 Board
 board([ 
-    [c, e, e, a, a, a, a, a, e, e, c], 
+    [e, e, e, a, a, a, a, a, e, e, e], 
     [e, e, e, e, e, a, e, e, e, e, e], 
     [e, e, e, e, e, e, e, e, e, e, e], 
     [a, e, e, e, e, d, e, e, e, e, a], 
@@ -10,7 +10,7 @@ board([
     [a, e, e, e, e, d, e, e, e, e, a], 
     [e, e, e, e, e, e, e, e, e, e, e], 
     [e, e, e, e, e, a, e, e, e, e, e], 
-    [c, e, e, a, a, a, a, a, e, e, c] 
+    [e, e, e, a, a, a, a, a, e, e, e] 
 ]). 
 
 % State Representaion
