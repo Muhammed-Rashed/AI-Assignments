@@ -182,7 +182,7 @@ count_blocked(Board, [(R,C)|T], Count) :-
     (
         get_piece(Board, R, C, a)
         ;
-        special_cell(R, C)
+        (special_cell(R, C), \+ get_piece(Board, R, C, k))
     ),
     count_blocked(Board, T, C1),
     Count is C1 + 1.
