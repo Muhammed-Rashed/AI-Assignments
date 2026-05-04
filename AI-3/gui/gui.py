@@ -39,6 +39,26 @@ class Piece:
 
 
 class Game:
+    def update_animation(self):
+        if not self.animating:
+            return
+
+        speed = 0.1  # increase for faster animation
+        self.anim_progress += speed
+
+        if self.anim_progress >= 1:
+            self.animating = False
+            self.anim_progress = 1
+
+            # apply final board AFTER animation
+            self.board = self.pending_board
+            self.game_state = self.pending_state
+
+            if self.game_state == "ongoing":
+                self.current_turn = (
+                    "Defender" if self.current_turn == "Attacker" else "Attacker"
+                )
+                
     def count_pieces(self, board):
         count = 0
         for row in board:
@@ -338,20 +358,24 @@ class Game:
             new_board = self.from_prolog_board(result["NewBoard"])
             new_count = self.count_pieces(new_board)
 
-            self.board = new_board
+            # -------- START ANIMATION INSTEAD OF APPLYING MOVE --------
+            moving_piece = self.board[sr][sc]
 
-            # detect capture
+            self.animating = True
+            self.anim_piece = moving_piece
+            self.anim_start = (sr, sc)
+            self.anim_end = (tr, tc)
+            self.anim_progress = 0
+
+            # store result to apply AFTER animation
+            self.pending_board = new_board
+            self.pending_state = result.get("State", "ongoing")
+
+            # -------- PLAY SOUND --------
             if new_count < old_count:
                 self.capture_sound.play()
             else:
                 self.move_sound.play()
-
-            self.game_state = result.get("State", "ongoing")
-            if self.game_state == "ongoing":
-                self.current_turn = (
-                    "Defender" if self.current_turn == "Attacker" else "Attacker"
-                )
-
         self.selected = None
         self.valid_moves = []
     def draw_ui(self):
@@ -412,13 +436,26 @@ class Game:
     def draw_pieces(self):
         for r in range(BOARD_SIZE):
             for c in range(BOARD_SIZE):
+                # skip drawing moving piece in grid
+                if self.animating and (r, c) == self.anim_start:
+                    continue
+
                 p = self.board[r][c]
                 if p:
                     x = c*SQUARE_SIZE+SQUARE_SIZE//2
                     y = r*SQUARE_SIZE+UI_HEIGHT+SQUARE_SIZE//2
-                    screen.blit(p.image,p.image.get_rect(center=(x,y)))
+                    screen.blit(p.image, p.image.get_rect(center=(x,y)))
 
+        # draw animated piece ON TOP
+        if self.animating:
+            sr, sc = self.anim_start
+            tr, tc = self.anim_end
 
+            # interpolate position
+            x = (sc + (tc - sc) * self.anim_progress) * SQUARE_SIZE + SQUARE_SIZE//2
+            y = (sr + (tr - sr) * self.anim_progress) * SQUARE_SIZE + UI_HEIGHT + SQUARE_SIZE//2
+
+            screen.blit(self.anim_piece.image, self.anim_piece.image.get_rect(center=(x,y)))
     def run(self):
         while True:
             for e in pygame.event.get():
@@ -436,6 +473,7 @@ class Game:
                 self.draw_role_menu()
             else:
                 screen.fill((255,255,255))
+                self.update_animation()
                 self.draw_ui()
                 self.draw_board()
                 self.draw_pieces()
