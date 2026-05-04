@@ -13,7 +13,7 @@ SQUARE_SIZE = WIDTH // BOARD_SIZE
 
 LIGHT_CYAN = (170, 215, 235)
 DARK_CYAN = (120, 175, 205)
-LINE_COLOR = (90, 140, 170)
+LINE_COLOR = (80, 60, 40)  # brown tone that fits wood
 
 UI_BG = (235, 235, 235)
 TEXT_COLOR = (0, 0, 0)
@@ -163,6 +163,8 @@ class Game:
         }
 
         self.load_images()
+        self.board_bg = pygame.image.load("board.png")
+        self.board_bg = pygame.transform.smoothscale(self.board_bg, (WIDTH, WIDTH))
         self.init_board()
 
 
@@ -176,7 +178,7 @@ class Game:
     def load_king(self, path):
         img = pygame.image.load(path)
         scale = min(SQUARE_SIZE / img.get_width(), SQUARE_SIZE / img.get_height())
-        new_size = (int(img.get_width()*scale+28), int(img.get_height()*scale+23))
+        new_size = (int(img.get_width()*scale + 2), int(img.get_height()*scale + 2))
         return pygame.transform.smoothscale(img, new_size)
 
 
@@ -380,35 +382,32 @@ class Game:
         screen.blit(reset_text, reset_text.get_rect(center=self.reset_button.center))
 
     def draw_board(self):
+        # draw board image
+        screen.blit(self.board_bg, (0, UI_HEIGHT))
+
         for r in range(BOARD_SIZE):
             for c in range(BOARD_SIZE):
-                rect = pygame.Rect(c*SQUARE_SIZE, r*SQUARE_SIZE+UI_HEIGHT,SQUARE_SIZE,SQUARE_SIZE)
-                color = DARK_CYAN if (r,c) in self.special_squares else LIGHT_CYAN
-                pygame.draw.rect(screen,color,rect)
-                pygame.draw.rect(screen,LINE_COLOR,rect,1)
+                rect = pygame.Rect(
+                    c * SQUARE_SIZE,
+                    r * SQUARE_SIZE + UI_HEIGHT,
+                    SQUARE_SIZE,
+                    SQUARE_SIZE
+                )
 
-                # X marks (restored)
-                if (r,c) in self.special_squares:
-                    pad = 10
-                    pygame.draw.line(screen,(255,255,255),
-                        (rect.left+pad, rect.top+pad),
-                        (rect.right-pad, rect.bottom-pad),3)
-                    pygame.draw.line(screen,(255,255,255),
-                        (rect.right-pad, rect.top+pad),
-                        (rect.left+pad, rect.bottom-pad),3)
+                # thin overlay grid
+                pygame.draw.rect(screen, LINE_COLOR, rect, 1)
 
                 # selected highlight
-                if self.selected == (r,c):
-                    pygame.draw.rect(screen,HIGHLIGHT,rect,4)
+                if self.selected == (r, c):
+                    pygame.draw.rect(screen, HIGHLIGHT, rect, 4)
 
                 # last move highlight
-                if self.last_move == (r,c):
-                    pygame.draw.rect(screen,LAST_MOVE_COLOR,rect,3)
+                if self.last_move == (r, c):
+                    pygame.draw.rect(screen, LAST_MOVE_COLOR, rect, 3)
 
                 # valid moves
-                if (r,c) in self.valid_moves:
-                    pygame.draw.circle(screen,MOVE_HINT,rect.center,10)
-
+                if (r, c) in self.valid_moves:
+                    pygame.draw.circle(screen, MOVE_HINT, rect.center, 10)
 
     def draw_pieces(self):
         for r in range(BOARD_SIZE):
