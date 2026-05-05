@@ -163,7 +163,7 @@ utility(Board, UVal) :-
     % Check if the king has escaped (on a corner)
     (king_escaped(Board) -> IsEscaped = 1 ; IsEscaped = 0),
 
-    UVal is FinalDangerCount + 0.3*CapturedDefenders + 700*IsCaptured - 0.3*CapturedAttackers - 2*Edges - (4*Corners)^3 - 700*IsEscaped.
+    UVal is FinalDangerCount + 0.3*CapturedDefenders + 10000*IsCaptured - 0.3*CapturedAttackers - 2*Edges - (4*Corners)^3 - 10000*IsEscaped.
 
 % Count a type in the board
 count_piece(Board, Piece, Count) :-
