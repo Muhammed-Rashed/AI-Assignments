@@ -54,6 +54,10 @@ class Game:
             self.board = self.pending_board
             self.game_state = self.pending_state
 
+            # if game ended → start timer
+            if self.game_state in ["attackers_win", "defenders_win"]:
+                self.end_timer = pygame.time.get_ticks()
+
             if self.game_state == "ongoing":
                 self.current_turn = (
                     "Defender" if self.current_turn == "Attacker" else "Attacker"
@@ -121,12 +125,33 @@ class Game:
 
         if self.btn_def.collidepoint(mouse_pos):
             pygame.draw.rect(screen, (220, 200, 150), self.btn_def, 3, border_radius=8)
+    def draw_game_over(self):
+        if self.game_state == "defenders_win":
+            screen.blit(self.dwins_bg, (0, 0))
+        elif self.game_state == "attackers_win":
+            screen.blit(self.awins_bg, (0, 0))
 
+        mouse_pos = pygame.mouse.get_pos()
+        if self.btn_play_again.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_play_again, 3, border_radius=10)
 
     def __init__(self):
         self.player_role = None
         self.ai_difficulty = None
         
+        # stuff for game over screen
+        self.end_timer = None
+        self.show_end_screen = False
+
+        # load win screens
+        self.dwins_bg = pygame.image.load("dwins.jpg")
+        self.dwins_bg = pygame.transform.smoothscale(self.dwins_bg, (WIDTH, HEIGHT))
+
+        self.awins_bg = pygame.image.load("awins.jpg")
+        self.awins_bg = pygame.transform.smoothscale(self.awins_bg, (WIDTH, HEIGHT))
+
+        # Play Again button area (adjust if needed)
+        self.btn_play_again = pygame.Rect(205, 587, 330, 68)
         # clickable areas for buttons
         # mode menu
         self.btn_pvai = pygame.Rect(284, 289, 243, 70)
@@ -254,6 +279,20 @@ class Game:
 
 
     def handle_click(self, pos):
+        if self.state == "game_over":
+            if self.btn_play_again.collidepoint(pos):
+                # same as reset
+                self.game_state = "ongoing"
+                self.current_turn = "Attacker"
+                self.selected = None
+                self.valid_moves = []
+                self.last_move = None
+                self.win_sound_played = False
+                self.victory_sound_played = False
+                self.state = "menu"
+                self.end_timer = None
+                self.show_end_screen = False
+            return
         # Block moves after game ends
         if self.game_state != "ongoing":
             if self.reset_button.collidepoint(pos):
@@ -496,7 +535,14 @@ class Game:
                 self.draw_ai_menu()
             elif self.state == "role_menu":
                 self.draw_role_menu()
+            elif self.state == "game_over":
+                self.draw_game_over()
             else:
+                if self.end_timer:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - self.end_timer >= 2500:  # 2.5 seconds
+                        self.show_end_screen = True
+                        self.state = "game_over"
                 screen.fill((255,255,255))
                 self.update_animation()
                 self.draw_ui()
