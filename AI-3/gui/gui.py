@@ -13,7 +13,7 @@ SQUARE_SIZE = WIDTH // BOARD_SIZE
 
 LIGHT_CYAN = (170, 215, 235)
 DARK_CYAN = (120, 175, 205)
-LINE_COLOR = (80, 60, 40)  # brown tone that fits wood
+LINE_COLOR = (80, 60, 40) 
 
 UI_BG = (235, 235, 235)
 TEXT_COLOR = (0, 0, 0)
@@ -43,7 +43,7 @@ class Game:
         if not self.animating:
             return
 
-        speed = 0.1  # increase for faster animation
+        speed = 0.1  # animation speed
         self.anim_progress += speed
 
         if self.anim_progress >= 1:
@@ -90,58 +90,57 @@ class Game:
         return [[make(c) for c in row] for row in board]
     
     def draw_menu(self):
-        screen.fill((240, 240, 240))
+        screen.blit(self.menu_bg, (0, 0))
+        mouse_pos = pygame.mouse.get_pos()
+        if self.btn_pvai.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_pvai, 3, border_radius=8)
 
-        title = font.render("Choose Game Mode", True, (0,0,0))
-        screen.blit(title, (WIDTH//2 - title.get_width()//2, HEIGHT//2 - 100))
-
-        pygame.draw.rect(screen, (200,200,200), self.pvp_button, border_radius=8)
-        pygame.draw.rect(screen, (80,80,80), self.pvp_button, 2, border_radius=8)
-
-        pvp_text = font.render("Player vs Player", True, (0,0,0))
-        screen.blit(pvp_text, pvp_text.get_rect(center=self.pvp_button.center))
-
-        pygame.draw.rect(screen, (200,200,200), self.ai_button, border_radius=8)
-        pygame.draw.rect(screen, (80,80,80), self.ai_button, 2, border_radius=8)
-
-        ai_text = font.render("Player vs AI", True, (0,0,0))
-        screen.blit(ai_text, ai_text.get_rect(center=self.ai_button.center))
+        if self.btn_pvp.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_pvp, 3, border_radius=8)
 
 
     def draw_ai_menu(self):
-        screen.fill((240, 240, 240))
+        screen.blit(self.ai_menu, (0, 0))
+        mouse_pos = pygame.mouse.get_pos()
+        if self.btn_easy.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_easy, 3, border_radius=8)
 
-        title = font.render("Choose AI Difficulty", True, (0,0,0))
-        screen.blit(title, (WIDTH//2 - title.get_width()//2, HEIGHT//2 - 120))
-
-        for btn, txt in [
-            (self.easy_button, "Easy"),
-            (self.medium_button, "Medium"),
-            (self.hard_button, "Hard")
-        ]:
-            pygame.draw.rect(screen, (200,200,200), btn, border_radius=8)
-            pygame.draw.rect(screen, (80,80,80), btn, 2, border_radius=8)
-            t = font.render(txt, True, (0,0,0))
-            screen.blit(t, t.get_rect(center=btn.center))
+        if self.btn_medium.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_medium, 3, border_radius=8)
+            
+        if self.btn_hard.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_hard, 3, border_radius=8)
+            
 
 
     def draw_role_menu(self):
-        screen.fill((240, 240, 240))
+        screen.blit(self.role_bg, (0, 0))
+        mouse_pos = pygame.mouse.get_pos()
+        if self.btn_att.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_att, 3, border_radius=8)
 
-        title = font.render("Choose Your Role", True, (0,0,0))
-        screen.blit(title, (WIDTH//2 - title.get_width()//2, HEIGHT//2 - 100))
-
-        for btn, txt in [
-            (self.attacker_button, "Attacker"),
-            (self.defender_button, "Defender")
-        ]:
-            pygame.draw.rect(screen, (200,200,200), btn, border_radius=8)
-            pygame.draw.rect(screen, (80,80,80), btn, 2, border_radius=8)
-            t = font.render(txt, True, (0,0,0))
-            screen.blit(t, t.get_rect(center=btn.center))
+        if self.btn_def.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (220, 200, 150), self.btn_def, 3, border_radius=8)
 
 
     def __init__(self):
+        self.player_role = None
+        self.ai_difficulty = None
+        
+        # clickable areas for buttons
+        # mode menu
+        self.btn_pvai = pygame.Rect(284, 289, 243, 70)
+        self.btn_pvp = pygame.Rect(283, 455, 280, 70)
+        
+        # Ai difficulty buttons
+        self.btn_easy = pygame.Rect(282, 277, 240, 65)
+        self.btn_medium = pygame.Rect(282, 432, 240, 66)
+        self.btn_hard = pygame.Rect(282, 587, 240, 65)
+
+        # role menu
+        self.btn_att = pygame.Rect(282, 288, 237, 66)
+        self.btn_def = pygame.Rect(282, 445, 257, 66)
+        
         self.win_sound_played = False
         self.victory_sound_played = False
         self.game_state = "ongoing"
@@ -162,7 +161,19 @@ class Game:
         self.ai_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 + 20, 240, 40)
 
         self.reset_button = pygame.Rect(WIDTH - 130, 7, 120, 26)
-
+        # mode menu
+        self.menu_bg = pygame.image.load("menu.png")
+        self.menu_bg = pygame.transform.smoothscale(self.menu_bg, (WIDTH, HEIGHT))
+        
+        # Ai menu
+        
+        self.ai_menu = pygame.image.load("Diff.png")
+        self.ai_menu = pygame.transform.smoothscale(self.ai_menu, (WIDTH, HEIGHT))
+        
+        # role menu
+        self.role_bg = pygame.image.load("Role.png")
+        self.role_bg = pygame.transform.smoothscale(self.role_bg, (WIDTH, HEIGHT))
+        
         self.state = "menu"
         self.board = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
         self.current_turn = "Attacker"
@@ -243,7 +254,7 @@ class Game:
 
 
     def handle_click(self, pos):
-        # BLOCK ALL MOVES AFTER GAME END
+        # Block moves after game ends
         if self.game_state != "ongoing":
             if self.reset_button.collidepoint(pos):
                 self.game_state = "ongoing"
@@ -255,25 +266,39 @@ class Game:
                 self.last_move = None
                 self.state = "menu"
             return
-        # ---------------- MENU STATES ----------------
+        # Menu states
         if self.state == "menu":
-            if self.pvp_button.collidepoint(pos):
+            if self.btn_pvp.collidepoint(pos):
                 self.state = "game"
                 self.init_board()
-            elif self.ai_button.collidepoint(pos):
+            elif self.btn_pvai.collidepoint(pos):
                 self.state = "ai_menu"
             return
 
         if self.state == "ai_menu":
-            self.state = "role_menu"
+            if self.btn_easy.collidepoint(pos):
+                self.ai_difficulty = 1 # depth, easy
+                self.state = "role_menu"
+            elif self.btn_medium.collidepoint(pos):
+                self.ai_difficulty = 3 # depth, medium
+                self.state = "role_menu"
+            elif self.btn_hard.collidepoint(pos):
+                self.ai_difficulty = 5 # depth, hard
+                self.state = "role_menu"
             return
 
         if self.state == "role_menu":
-            self.state = "game"
-            self.init_board()
+            if self.btn_att.collidepoint(pos):
+                self.player_role = 0  # attacker
+                self.state = "game"
+                self.init_board()
+            elif self.btn_def.collidepoint(pos):
+                self.player_role = 1  # defender
+                self.state = "game"
+                self.init_board()
             return
 
-        # RESET BUTTON
+        # Reset button
         if self.reset_button.collidepoint(pos):
             self.current_turn = "Attacker"
             self.selected = None
@@ -284,7 +309,7 @@ class Game:
             self.state = "menu"
             return
 
-        # ---------------- GAME LOGIC ----------------
+        # Game logic
         x, y = pos
         r = (y - UI_HEIGHT) // SQUARE_SIZE
         c = x // SQUARE_SIZE
@@ -296,7 +321,7 @@ class Game:
 
         if self.game_state != "ongoing":
             return
-        # ---------------- SELECT PIECE ----------------
+        # Select piece
         if self.selected is None:
 
             piece = self.board[r][c]
@@ -330,11 +355,11 @@ class Game:
 
             return
 
-        # ---------------- MOVE PIECE ----------------
+        # Move a piece
         sr, sc = self.selected
         tr, tc = r, c
 
-        # must be valid move
+        # must be a valid move
         if (tr, tc) not in self.valid_moves:
             self.selected = None
             self.valid_moves = []
@@ -358,7 +383,7 @@ class Game:
             new_board = self.from_prolog_board(result["NewBoard"])
             new_count = self.count_pieces(new_board)
 
-            # -------- START ANIMATION INSTEAD OF APPLYING MOVE --------
+            # Start animation
             moving_piece = self.board[sr][sc]
 
             self.animating = True
@@ -371,7 +396,7 @@ class Game:
             self.pending_board = new_board
             self.pending_state = result.get("State", "ongoing")
 
-            # -------- PLAY SOUND --------
+            # Play sound
             if new_count < old_count:
                 self.capture_sound.play()
             else:
@@ -381,7 +406,7 @@ class Game:
     def draw_ui(self):
         pygame.draw.rect(screen, UI_BG, (0,0,WIDTH,UI_HEIGHT))
 
-        # turn text (only if ongoing)
+        # turn text, changes to winning message when game ends
         if self.game_state == "ongoing":
             text = f"Turn: {self.current_turn}"
         elif self.game_state == "attackers_win":
@@ -425,7 +450,7 @@ class Game:
                 if self.selected == (r, c):
                     pygame.draw.rect(screen, HIGHLIGHT, rect, 4)
 
-                # last move highlight
+                # last move highlight, not used yet
                 if self.last_move == (r, c):
                     pygame.draw.rect(screen, LAST_MOVE_COLOR, rect, 3)
 
