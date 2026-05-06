@@ -74,7 +74,7 @@ unsafe_position(Board, Type, R, C) :-
     (
         get_piece(Board, R3, C3, Enemy)
         ;
-        special_cell(R3, C3)
+        (special_cell(R3, C3), empty_cell(R3, C3, Board))
     ).
 
 
@@ -149,7 +149,7 @@ capturable(Board, R, C, Type, R2, C2) :-
     (
         get_piece(Board, R3, C3, Type)
         ;
-        special_cell(R3, C3)
+        (special_cell(R3, C3), empty_cell(R3, C3, Board))
     ).
 
 remove_pieces(Board, [], Board).
