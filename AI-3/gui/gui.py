@@ -136,7 +136,7 @@ class Game:
     
 
     
-    # --------- Board and State Helpers---------
+    # Board and State Helpers
     def init_board(self):
         self.board = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
 
@@ -200,7 +200,7 @@ class Game:
     
 
     
-    # -----------Animation -----------
+    # Animation
     def update_animation(self):
         if not self.animating:
             return
@@ -216,7 +216,7 @@ class Game:
             self.board = self.pending_board
             self.game_state = self.pending_state
 
-            # if game ended → start timer
+            # if game ended start timer
             if self.game_state in ["attackers_win", "defenders_win"]:
                 self.end_timer = pygame.time.get_ticks()
 
@@ -227,7 +227,7 @@ class Game:
     
 
 
-    # ---------- Drawing/Rendering --------
+    # Drawing/Rendering
     def draw_menu(self):
         screen.blit(self.menu_bg, (0, 0))
         mouse_pos = pygame.mouse.get_pos()
@@ -312,7 +312,7 @@ class Game:
                     pygame.draw.circle(screen, MOVE_HINT, rect.center, 10)
 
     def draw_pieces(self):
-        # Static Pieces (on board)
+        # Static Pieces
         for r in range(BOARD_SIZE):
             for c in range(BOARD_SIZE):
                 # Don't draw the piece if it's currently sliding
@@ -335,7 +335,7 @@ class Game:
 
 
 
-    # ---------- AI Logic -----------
+    # AI Logic
     def ai_move(self):
         # Setup Parameters
         board = self.prolog_board()
@@ -343,7 +343,7 @@ class Game:
         depth = self.ai_difficulty
         
         # Difficulty Settings
-        width_map = {1: 1000, 4: 10, 5: 5}
+        width_map = {2: 1000, 3: 50, 4: 10}
         width = width_map.get(depth, 5)
 
         # Execute Prolog Query
@@ -391,7 +391,7 @@ class Game:
 
     
 
-    # -------- Clicks Handling ----------
+    # Clicks Handling
     def handle_click(self, pos):
         # 1. MENU & NAVIGATION LOGIC
         # Game Over Screen
@@ -417,13 +417,13 @@ class Game:
         # AI Difficulty Selection
         if self.state == "ai_menu":
             if self.btn_easy.collidepoint(pos):
-                self.ai_difficulty = 1
+                self.ai_difficulty = 2
                 self.state = "role_menu"
             elif self.btn_medium.collidepoint(pos):
-                self.ai_difficulty = 4
+                self.ai_difficulty = 3
                 self.state = "role_menu"
             elif self.btn_hard.collidepoint(pos):
-                self.ai_difficulty = 5
+                self.ai_difficulty = 4
                 self.state = "role_menu"
             return
 
@@ -537,7 +537,7 @@ class Game:
 
 
     
-    #----Some Helper Functions----
+    # Some Helper Functions
     def _get_status_text(self):
         if self.game_state == "ongoing":
             return f"Turn: {self.current_turn}"
@@ -563,7 +563,7 @@ class Game:
 
 
 
-    #----------Main Loop -----        
+    # Main Loop
     def run(self):
         while True:
             for e in pygame.event.get():
