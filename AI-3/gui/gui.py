@@ -602,9 +602,7 @@ class Game:
 
                 screen.fill((255, 255, 255))
                 self.update_animation()
-                self.draw_ui()
-                self.draw_board()
-                self.draw_pieces()
+                self.draw_game_screen()
 
             pygame.display.flip()
             clock.tick(60)
