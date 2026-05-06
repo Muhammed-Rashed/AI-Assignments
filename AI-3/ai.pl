@@ -123,14 +123,14 @@ betterOf(Move1, UVal1, Move2, UVal2, BestMove, BestUVal, false) :-
 % ======= Utility Function =======
 % attackers -> max, defenders -> min
 % UVal =
-%    (AttackersAroundKing)^3                     // King in danger
-%  + 20 (If AttackersAroundKing =:= 3)            // King in much more danger
+%    (2*AttackersAroundKing)^3                   // King in danger
+%  + 20 (If AttackersAroundKing =:= 3)           // King in much more danger
 %  + 0.3 * (InitialDefenders - CurrentDefenders) // The amount of defenders captured
-%  + 700 (If AttackersAroundKing =:= 4)           // Attackers won
+%  + 10000 (If AttackersAroundKing =:= 4)        // Attackers won
 %  - 0.3 * (InitialAttackers - CurrentAttackers) // The amount of attackers captured
 %  - 2 * (KingOpenEdgePaths)                     // The number of edges the king can reach in one move (The king can't reach corners without reaching edges)
 %  - (4 * KingOpenCornerPaths)^3                 // The number of corners the king can reach in one move (max is 2 corners)
-%  - 700 (If KingOnCorner = true)                 // Defenders won
+%  - 10000 (If KingOnCorner = true)              // Defenders won
 
 utility(Board, UVal) :-
     % Get the number of attackers around the king

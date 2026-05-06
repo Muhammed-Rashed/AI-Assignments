@@ -1,6 +1,6 @@
 :- consult('Board.pl').
 :- consult('move.pl').
-:- consult('ai7.pl').
+:- consult('ai.pl').
 
 evaluate_game_state(Board, defenders_win) :-
     king_escaped(Board), !.
