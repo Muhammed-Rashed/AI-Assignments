@@ -362,13 +362,16 @@ class Game:
         new_count = self.count_pieces(new_board)
 
         # Identify which piece moved by comparing boards
+        ai_team = "attacker" if self.current_turn == "Attacker" else "defender"
         for r in range(BOARD_SIZE):
             for c in range(BOARD_SIZE):
-                # Start position: exists in old, gone in new
-                if self.board[r][c] and not new_board[r][c]:
+                old = self.board[r][c]
+                new = new_board[r][c]
+                # Start: had a friendly piece, now empty
+                if old and not new and old.type == ai_team:
                     self.anim_start = (r, c)
-                # End position: empty in old, filled in new
-                if not self.board[r][c] and new_board[r][c]:
+                # End: was empty, now has any piece (the moved piece landed here)
+                elif not old and new:
                     self.anim_end = (r, c)
 
         # Trigger Animation & Sound
