@@ -1,5 +1,7 @@
 :- consult('Board.pl').
 :- consult('move.pl').
+:- consult('ai.pl').
+
 evaluate_game_state(Board, defenders_win) :-
     king_escaped(Board), !.
 
@@ -26,3 +28,18 @@ apply_move(Board, R1, C1, R2, C2, Turn, NewBoard, GameState) :-
 
     evaluate_game_state(TempBoard, GameState),
     NewBoard = TempBoard.
+
+    % AI MOVE WRAPPER
+ai_move(Board, Turn, Depth, Width, NewBoard, GameState) :-
+    % Alpha and Beta initial values
+    Alpha is -1000000,
+    Beta is 1000000,
+
+    % Call your AI
+    alphabeta(Board, Alpha, Beta, BestBoard, Depth, Width, Turn, _),
+
+    % Return result
+    NewBoard = BestBoard,
+
+    % Evaluate game state after AI move
+    evaluate_game_state(NewBoard, GameState).
