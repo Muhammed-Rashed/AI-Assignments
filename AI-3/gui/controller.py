@@ -6,7 +6,7 @@ class GameController:
         self.game_state = "ongoing"
 
         self.player_role = None
-        self.ai_depth = 3
+        self.ai_depth = None
 
     def init_board(self, board):
         self.board = board
@@ -55,13 +55,20 @@ class GameController:
             return self.current_turn == "Attacker"
 
     def ai_move(self, board):
+        Width = None
+        if (self.ai_depth == 2):
+            Width = 1000
+        elif (self.ai_depth == 3):
+            Width = 50
+        else:
+            Width = 10
         result = self.janus.query_once(
             "ai_move(Board, Turn, Depth, Width, NewBoard, GameState)",
             {
                 "Board": board,
                 "Turn": self.turn_to_prolog(),
                 "Depth": self.ai_depth,
-                "Width": 5
+                "Width": Width
             }
         )
 

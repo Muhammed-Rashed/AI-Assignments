@@ -12,7 +12,9 @@ evaluate_game_state(_, ongoing).
 
 % VALID MOVES
 valid_moves(Board, R, C, Turn, Moves) :-
+    % get the piece type at the given position
     get_piece(Board, R, C, Type),
+    % check if the piece belongs to the current turn, important for king
     is_turn_piece(Type, Turn),
     findall([R2, C2],
         valid_move(Board, R, C, R2, C2, Type, Turn),
