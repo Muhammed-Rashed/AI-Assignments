@@ -601,7 +601,7 @@ class Game:
                     self.ai_move()
 
                 screen.fill((255, 255, 255))
-                self.update_animation()
+                self.update_animation() # has the side effect of switching turns and updating board when animation finishes
                 self.draw_game_screen()
 
             pygame.display.flip()
