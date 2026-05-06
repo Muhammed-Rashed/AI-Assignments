@@ -5,7 +5,7 @@ janus.consult("../api.pl")
 pygame.init()
 pygame.mixer.init()
 
-BOARD_SIZE = 11
+BOARD_SIZE = 9
 UI_HEIGHT = 40
 WIDTH = 737
 HEIGHT = WIDTH + UI_HEIGHT
@@ -246,17 +246,23 @@ class Game:
         }
 
     def ai_move(self):
+        Width = None
         board = self.prolog_board()
         turn = self.turn_to_prolog()
-        depth = self.ai_difficulty or 3
-
+        depth = self.ai_difficulty
+        if (depth == 1):
+            Width = 1000
+        elif (depth == 4):
+            Width = 10
+        else:
+            Width = 5
         result = janus.query_once(
             "ai_move(Board, Turn, Depth, Width, NewBoard, GameState)",
             {
                 "Board": board,
                 "Turn": turn,
                 "Depth": depth,
-                "Width": 5
+                "Width": Width
             }
         )
 
@@ -305,12 +311,12 @@ class Game:
             self.board[r][c] = Piece("defender", self.pieces_img["defender"])
 
         attackers = [
-            (0,3),(0,4),(0,5),(0,6),(0,7),
-            (10,3),(10,4),(10,5),(10,6),(10,7),
-            (3,0),(4,0),(5,0),(6,0),(7,0),
-            (3,10),(4,10),(5,10),(6,10),(7,10),
-            (1,5),(9,5),
-            (5,1),(5,9)
+            (0,2),(0,3),(0,4),(0,5),(0,6),
+            (8,2),(8,3),(8,4),(8,5),(8,6),
+            (2,0),(3,0),(4,0),(5,0),(6,0),
+            (2,8),(3,8),(4,8),(5,8),(6,8),
+            (1,4),(7,4),
+            (4,1),(4,7)
         ]
 
         for r,c in attackers:
@@ -325,6 +331,8 @@ class Game:
         if self.state == "game_over":
             if self.btn_play_again.collidepoint(pos):
                 # same as reset
+                self.player_role = None
+                self.ai_difficulty = None
                 self.game_state = "ongoing"
                 self.current_turn = "Attacker"
                 self.selected = None
@@ -362,7 +370,7 @@ class Game:
                 self.ai_difficulty = 1 # depth, easy
                 self.state = "role_menu"
             elif self.btn_medium.collidepoint(pos):
-                self.ai_difficulty = 3 # depth, medium
+                self.ai_difficulty = 4 # depth, medium
                 self.state = "role_menu"
             elif self.btn_hard.collidepoint(pos):
                 self.ai_difficulty = 5 # depth, hard
@@ -382,6 +390,8 @@ class Game:
 
         # Reset button
         if self.reset_button.collidepoint(pos):
+            self.player_role = None
+            self.ai_difficulty = None
             self.current_turn = "Attacker"
             self.selected = None
             self.valid_moves = []
