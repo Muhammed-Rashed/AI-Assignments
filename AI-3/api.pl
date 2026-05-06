@@ -1,6 +1,6 @@
 :- consult('Board.pl').
 :- consult('move.pl').
-:- consult('ai.pl').
+:- consult('ai7.pl').
 
 evaluate_game_state(Board, defenders_win) :-
     king_escaped(Board), !.
@@ -36,7 +36,7 @@ ai_move(Board, Turn, Depth, Width, NewBoard, GameState) :-
     Beta is 1000000,
 
     % Call your AI
-    alphabeta(Board, Alpha, Beta, BestBoard, Depth, Width, Turn, _),
+    alphabeta(Board, Alpha, Beta, BestBoard, Depth, Turn, Width, _),
 
     % Return result
     NewBoard = BestBoard,
