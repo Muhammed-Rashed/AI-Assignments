@@ -278,6 +278,7 @@ class Game:
                     self.anim_start = (r, c)
                 if self.board[r][c] is None and new_board[r][c] is not None:
                     self.anim_end = (r, c)
+                    self.last_move = (self.anim_start, self.anim_end)
 
         self.anim_piece = self.board[self.anim_start[0]][self.anim_start[1]]
         self.animating = True
@@ -471,6 +472,7 @@ class Game:
             self.anim_piece = moving_piece
             self.anim_start = (sr, sc)
             self.anim_end = (tr, tc)
+            self.last_move = ((sr, sc), (tr, tc))
             self.anim_progress = 0
 
             # store result to apply AFTER animation
@@ -532,7 +534,7 @@ class Game:
                     pygame.draw.rect(screen, HIGHLIGHT, rect, 4)
 
                 # last move highlight, not used yet
-                if self.last_move == (r, c):
+                if self.last_move and (r, c) in self.last_move:
                     pygame.draw.rect(screen, LAST_MOVE_COLOR, rect, 3)
 
                 # valid moves
