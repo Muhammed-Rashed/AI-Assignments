@@ -1,7 +1,7 @@
 import pygame
 import sys
 import janus_swi as janus
-janus.consult("api.pl")
+janus.consult("../api.pl")
 pygame.init()
 pygame.mixer.init()
 
@@ -144,10 +144,10 @@ class Game:
         self.show_end_screen = False
 
         # load win screens
-        self.dwins_bg = pygame.image.load("gui/dwins.jpg")
+        self.dwins_bg = pygame.image.load("dwins.jpg")
         self.dwins_bg = pygame.transform.smoothscale(self.dwins_bg, (WIDTH, HEIGHT))
 
-        self.awins_bg = pygame.image.load("gui/awins.jpg")
+        self.awins_bg = pygame.image.load("awins.jpg")
         self.awins_bg = pygame.transform.smoothscale(self.awins_bg, (WIDTH, HEIGHT))
 
         # Play Again button area (adjust if needed)
@@ -169,11 +169,11 @@ class Game:
         self.win_sound_played = False
         self.victory_sound_played = False
         self.game_state = "ongoing"
-        self.move_sound = pygame.mixer.Sound("gui/move.wav")
+        self.move_sound = pygame.mixer.Sound("move.wav")
         self.move_sound.set_volume(0.6)
-        self.capture_sound = pygame.mixer.Sound("gui/capture.wav")
-        self.win_sound = pygame.mixer.Sound("gui/win.wav")
-        self.victory_sound = pygame.mixer.Sound("gui/victory.wav")
+        self.capture_sound = pygame.mixer.Sound("capture.wav")
+        self.win_sound = pygame.mixer.Sound("win.wav")
+        self.victory_sound = pygame.mixer.Sound("victory.wav")
         self.victory_sound.set_volume(0.4)
         self.attacker_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 - 40, 240, 40)
         self.defender_button = pygame.Rect(WIDTH//2 - 120, HEIGHT//2 + 20, 240, 40)
@@ -187,16 +187,16 @@ class Game:
 
         self.reset_button = pygame.Rect(WIDTH - 130, 7, 120, 26)
         # mode menu
-        self.menu_bg = pygame.image.load("gui/menu.png")
+        self.menu_bg = pygame.image.load("menu.png")
         self.menu_bg = pygame.transform.smoothscale(self.menu_bg, (WIDTH, HEIGHT))
         
         # Ai menu
         
-        self.ai_menu = pygame.image.load("gui/Diff.png")
+        self.ai_menu = pygame.image.load("Diff.png")
         self.ai_menu = pygame.transform.smoothscale(self.ai_menu, (WIDTH, HEIGHT))
         
         # role menu
-        self.role_bg = pygame.image.load("gui/Role.png")
+        self.role_bg = pygame.image.load("Role.png")
         self.role_bg = pygame.transform.smoothscale(self.role_bg, (WIDTH, HEIGHT))
         
         self.state = "menu"
@@ -219,7 +219,7 @@ class Game:
         }
 
         self.load_images()
-        self.board_bg = pygame.image.load("gui/board.png")
+        self.board_bg = pygame.image.load("board.png")
         self.board_bg = pygame.transform.smoothscale(self.board_bg, (WIDTH, WIDTH))
         self.init_board()
 
@@ -240,9 +240,9 @@ class Game:
 
     def load_images(self):
         self.pieces_img = {
-            "attacker": self.load_piece("gui/attacker.png"),
-            "defender": self.load_piece("gui/defender.png"),
-            "king": self.load_king("gui/king.png")
+            "attacker": self.load_piece("attacker.png"),
+            "defender": self.load_piece("defender.png"),
+            "king": self.load_king("king.png")
         }
 
     def ai_move(self):
