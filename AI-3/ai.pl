@@ -1,125 +1,121 @@
 % --- Imports ---
 :- consult('move.pl').
 
+direction(1,0).
+direction(-1,0).
+direction(0,1).
+direction(0,-1).
+
+% Check if moving from R1,C1 to R2,C2 is possible
+take_step(Board, R1, C1, R2, C2, DR, DC) :-
+    NewR is R1 + DR,
+    NewC is C1 + DC,
+
+    empty_cell(NewR, NewC, Board),
+    in_bounds((NewR, NewC), Board),
+
+    (
+        (NewR = R2, NewC = C2)
+        ;
+        take_step(Board, NewR, NewC, R2, C2, DR, DC)
+    ).
+
+% Check the validity of the move
+is_valid_move(Board, R1, C1, R2, C2) :-
+    direction(DR, DC),
+    take_step(Board, R1, C1, R2, C2, DR, DC).
+
 % Get a valid move
 get_valid_move(Board, R1, C1, R2, C2, Type, NewBoard) :-
-    nth0(R1, Board, Row),
-    nth0(C1, Row, Piece),
+    get_piece(Board, R1, C1, Piece),
+    (Type = Piece ; (Type = d, Piece = k)), % the type is a if piece is attacker, and d if piece is defender or king
 
-    (   % Horizontal moves: same row, different column
-        between(0, 10, C2), C1 \= C2, R2 = R1
-    ;   % Vertical moves: same column, different row
-        between(0, 10, R2), R1 \= R2, C2 = C1
-    ),
-
-    is_turn_piece(Piece, Type),
-
-    valid_move(Board, R1, C1, R2, C2, Piece, Type),
-
+    is_valid_move(Board, R1, C1, R2, C2),
     move(Board, R1, C1, R2, C2, Piece, NewBoard).
 
-% Helper to sort and limit moves to the top Limit
-limit_moves(Board, RawMoves, Type, Limit, LimitedMoves) :-
-    findall(Score-Move, (
-        member(Move, RawMoves),
-        Move = (R1, C1, R2, C2),
-
-        % Simulate move to get immediate utility
-        get_piece(Board, R1, C1, Piece),
-        move(Board, R1, C1, R2, C2, Piece, TempBoard),
-        utility(TempBoard, RawScore),
-
-        % If Max player (a), negate score because keysort is ascending
-        (Type = a -> Score is -1 * RawScore ; Score = RawScore)
-    ), ScoredMoves),
-    keysort(ScoredMoves, Sorted),
-    extract_top_n(Sorted, Limit, LimitedMoves).
-
-extract_top_n([], _, []).
-extract_top_n(_, 0, []) :- !.
-extract_top_n([_-Move | T], N, [Move | Rest]) :- 
-    N1 is N - 1,
-    extract_top_n(T, N1, Rest).
-
 % Base case (Leaf node or limit reached)
-alphabeta(Board, _, _, _, 0, _, Type, UVal) :-
+alphabeta(Board, _, _, _, 0, Type, _, UVal) :-
     !,
     utility(Board, UVal).
 
 % Alpha-Beta pruning
-alphabeta(Board, Alpha, Beta, BestPos, Depth, Width, Type, UVal) :-
+alphabeta(Board, Alpha, Beta, BestMove, Depth, Type, Width, UVal) :-
     Depth > 0,
+    
     % Make a list of valid moves
-    findall((R1, C1, R2, C2), get_valid_move(Board, R1, C1, R2, C2, Type, _), ValidMoves),
+    findall(NewBoard, get_valid_move(Board, _, _, _, _, Type, NewBoard), AllMoves),
 
-    limit_moves(Board, ValidMoves, Type, Width, TopValidMoves),
+    % Score and limit to top Width moves
+    limit_moves(Board, AllMoves, Type, Width, TopMoves),
 
-    % Get the best move in the ValidMoves list
-    bestMove(Board, TopValidMoves, Alpha, Beta, BestMove, Depth, Width, Type, UVal),
+    (Type = a -> IsMax = true ; IsMax = false),
+    bestMove(TopMoves, Alpha, Beta, BestMove, Depth, Type, Width, IsMax, UVal).
 
-    generate_board(Board, BestMove, Type, BestPos).
+limit_moves(Board, AllMoves, Type, Width, LimitedMoves) :-
+    findall(Score-Move, (
+        member(Move, AllMoves),
+        utility(Move, RawScore),
+        (Type = a -> Score is -1 * RawScore ; Score = RawScore)
+    ), Scored),
+    keysort(Scored, Sorted),
+    extract_top_n(Sorted, Width, LimitedMoves).
 
+extract_top_n([], _, []).
+extract_top_n(_, 0, []) :- !.
+extract_top_n([_-Move | T], N, [Move | Rest]) :-
+    N1 is N - 1,
+    extract_top_n(T, N1, Rest).
 
 % Prune if Alpha and Beta overlapped
-bestMove(Board, [_|_], Alpha, Beta, _, _, _, Type, UVal) :-
+bestMove([_|_], Alpha, Beta, _, _, _, _, IsMax, UVal) :-
     Alpha >= Beta,
     !,
-    (Type = a -> UVal is Beta ; UVal is Alpha).
+    (IsMax -> UVal is Beta ; UVal is Alpha).
 
 % Stop the recursion of only one move is left
-bestMove(Board, [Move], Alpha, Beta, Move, Depth, Width, Type, UVal):-
-    UpdatedDepth is Depth - 1,
+bestMove([Move], Alpha, Beta, Move, Limit, Type, Width, IsMax, UVal) :-
+    UpdatedLimit is Limit - 1,
 
     switch(Type, NewType),
 
-    % Generate a board with all the moves played for the best move
-    generate_board(Board, Move, Type, NewBoard),
-
     % Explore more depth
-    alphabeta(NewBoard, Alpha, Beta, _, UpdatedDepth, Width, NewType, UVal).
+    alphabeta(Move, Alpha, Beta, _, UpdatedLimit, NewType, Width, UVal).
 
 % Recurse to find the best move
-bestMove(Board, [Move | RestOfMoves], Alpha, Beta, BestMove, Depth, Width, Type, BestUVal) :-
-    UpdatedDepth is Depth - 1,
+bestMove([Move | RestOfMoves], Alpha, Beta, BestMove, Limit, Type, Width, IsMax, BestUVal) :-
+    UpdatedLimit is Limit - 1,
+    (IsMax -> MinMaxFlag = false ; MinMaxFlag = true),
 
     switch(Type, NewType),
 
-    % Simulate playing Move
-    generate_board(Board, Move, Type, NewBoard),
-
     % Explore more depth
-    alphabeta(NewBoard, Alpha, Beta, _, UpdatedDepth, Width, NewType, UVal),
+    alphabeta(Move, Alpha, Beta, _, UpdatedLimit, NewType, Width, UVal),
 
     % Update Alpha and Beta
-    updateValues(UVal, Alpha, Beta, NewAlpha, NewBeta, Type),
+    updateValues(UVal, Alpha, Beta, NewAlpha, NewBeta, IsMax),
 
     % Explore the rest of moves in the list
-    bestMove(Board, RestOfMoves, NewAlpha, NewBeta, Move2, Depth, Width, Type, UVal2),
+    bestMove(RestOfMoves, NewAlpha, NewBeta, Move2, Limit, Type, Width, IsMax, UVal2),
 
     % Compare current move with the best one found so far
-    betterOf(Move, UVal, Move2, UVal2, BestMove, BestUVal, Type).
-
-generate_board(Board, Move, Type, FinalBoard) :-
-    Move = (R1, C1, R2, C2),
-    get_piece(Board, R1, C1, Piece),
-    move(Board, R1, C1, R2, C2, Piece, FinalBoard).
+    betterOf(Move, UVal, Move2, UVal2, BestMove, BestUVal, IsMax).
 
 % Update Alpha when player is max
-updateValues(UVal, Alpha, Beta, NewAlpha, Beta, a):-
+updateValues(UVal, Alpha, Beta, NewAlpha, Beta, true):-
     (UVal > Alpha -> NewAlpha is UVal ; NewAlpha is Alpha).
 
 % Update Beta when player is min
-updateValues(UVal, Alpha, Beta, Alpha, NewBeta, d):-
+updateValues(UVal, Alpha, Beta, Alpha, NewBeta, false):-
     (UVal < Beta -> NewBeta is UVal ; NewBeta is Beta).
 
 % Choose move with max UVal
-betterOf(Move1, UVal1, Move2, UVal2, BestMove, BestUVal, a) :-
+betterOf(Move1, UVal1, Move2, UVal2, BestMove, BestUVal, true) :-
     (UVal1 >= UVal2 -> (BestMove = Move1, BestUVal is UVal1)
     ; (BestMove = Move2, BestUVal is UVal2)
     ).
 
 % Choose move with min UVal
-betterOf(Move1, UVal1, Move2, UVal2, BestMove, BestUVal, d) :-
+betterOf(Move1, UVal1, Move2, UVal2, BestMove, BestUVal, false) :-
     (UVal1 =< UVal2 -> (BestMove = Move1, BestUVal is UVal1)
     ; (BestMove = Move2, BestUVal is UVal2)
     ).
@@ -141,8 +137,7 @@ utility(Board, UVal) :-
     get_piece(Board, R, C, k),
     findall((R2,C2), adjacent(R,C,R2,C2), Adj),
     count_blocked(Board, Adj, DangerCount),
-    CubedDangerCount is DangerCount ^ 3,
-    % If 3 attackers add 20 to show more danger
+    CubedDangerCount is (2*DangerCount) ^ 3,
     ((DangerCount =:= 3) -> FinalDangerCount is CubedDangerCount + 20 ;
                         FinalDangerCount is CubedDangerCount),
 
@@ -192,10 +187,10 @@ king_mobility(Board, Edges, Corners) :-
     
     % Find all edges that the king can reach
     findall((R2, C2),
-        (valid_move(Board, R, C, R2, C2, k, d), edge(R2, C2)), Moves1),
+        (is_valid_move(Board, R, C, R2, C2), edge(R2, C2)), Moves1),
     length(Moves1, Edges),
     
     % Find all corners that the king can reach
     findall((R2, C2),
-        (valid_move(Board, R, C, R2, C2, k, d), corner(R2, C2)),Moves2),
+        (is_valid_move(Board, R, C, R2, C2), corner(R2, C2)),Moves2),
     length(Moves2, Corners).
